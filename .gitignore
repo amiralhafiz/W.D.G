@@ -1,0 +1,10 @@
+.php_tmp
+*.log
+.env
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
