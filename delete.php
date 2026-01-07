@@ -1,11 +1,12 @@
-<!-- author : Amir Al-Hafiz -->
 <?php
-   include("config.php");
-    
-   $id = intval($_GET['id']);
-    
-   $result = pg_query($conn, "DELETE FROM wdg_users WHERE id=$id");
-    
-   header("Location:index.php");
-   exit;
-   ?>
+declare(strict_types=1);
+
+require_once "config.php";
+
+$id = (int)($_GET['id'] ?? 0);
+if ($id > 0) {
+    $userRepo->deleteUser($id);
+}
+
+header("Location: index.php");
+exit;
