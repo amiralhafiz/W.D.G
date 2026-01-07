@@ -40,12 +40,32 @@ class Database {
     }
 }
 
-class UserRepository {
+class Logger {
     private PDO $db;
 
     public function __construct(PDO $db) {
-        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->db = $db;
+    }
+
+    public function log(string $activity, string $details = ''): bool {
+        $stmt = $this->db->prepare("INSERT INTO activity_logs (activity, details) VALUES (?, ?)");
+        return $stmt->execute([$activity, $details]);
+    }
+
+    public function getLogs(int $limit = 50): array {
+        $stmt = $this->db->prepare("SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT ?");
+        $stmt->execute([$limit]);
+        return $stmt->fetchAll();
+    }
+}
+
+class UserRepository {
+    private PDO $db;
+    private Logger $logger;
+
+    public function __construct(PDO $db) {
+        $this->db = $db;
+        $this->logger = new Logger($db);
     }
 
     public function getAllUsers(): array {
@@ -62,17 +82,30 @@ class UserRepository {
 
     public function createUser(string $name, string $phonenumber, string $email): bool {
         $stmt = $this->db->prepare("INSERT INTO wdg_users (name, phonenumber, email, date) VALUES (?, ?, ?, NOW())");
-        return $stmt->execute([$name, $phonenumber, $email]);
+        $success = $stmt->execute([$name, $phonenumber, $email]);
+        if ($success) {
+            $this->logger->log("Create User", "Created user: $name ($email)");
+        }
+        return $success;
     }
 
     public function updateUser(int $id, string $name, string $phonenumber, string $email): bool {
         $stmt = $this->db->prepare("UPDATE wdg_users SET name = ?, phonenumber = ?, email = ?, date = NOW() WHERE id = ?");
-        return $stmt->execute([$name, $phonenumber, $email, $id]);
+        $success = $stmt->execute([$name, $phonenumber, $email, $id]);
+        if ($success) {
+            $this->logger->log("Update User", "Updated user ID: $id to $name ($email)");
+        }
+        return $success;
     }
 
     public function deleteUser(int $id): bool {
+        $user = $this->getUserById($id);
         $stmt = $this->db->prepare("DELETE FROM wdg_users WHERE id = ?");
-        return $stmt->execute([$id]);
+        $success = $stmt->execute([$id]);
+        if ($success && $user) {
+            $this->logger->log("Delete User", "Deleted user: " . $user['name'] . " (ID: $id)");
+        }
+        return $success;
     }
 
     public function getUserCount(): int {
@@ -83,6 +116,7 @@ class UserRepository {
 try {
     $db = Database::getInstance();
     $userRepo = new UserRepository($db);
+    $logger = new Logger($db);
 } catch (RuntimeException $e) {
     if (basename($_SERVER['PHP_SELF']) !== 'dbcheck.php') {
         header('Location: dbcheck.php');

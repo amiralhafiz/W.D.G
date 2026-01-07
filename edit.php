@@ -34,14 +34,15 @@ if (!$user) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>W.D.G - Edit Member</title>
-    <link href="assets/css/bootstrap.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
-<body>
+<body class="bg-light">
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header"><h4>Edit Member</h4></div>
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white"><h4>Edit Member</h4></div>
                     <div class="card-body">
                         <form method="post">
                             <input type="hidden" name="id" value="<?= (int)$user['id'] ?>">
@@ -64,5 +65,6 @@ if (!$user) {
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
