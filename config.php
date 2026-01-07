@@ -113,9 +113,39 @@ class UserRepository {
     }
 }
 
+class PageRepository {
+    private PDO $db;
+    private Logger $logger;
+
+    public function __construct(PDO $db) {
+        $this->db = $db;
+        $this->logger = new Logger($db);
+    }
+
+    public function getAllPages(): array {
+        return $this->db->query("SELECT * FROM pages ORDER BY created_at DESC")->fetchAll();
+    }
+
+    public function getPageBySlug(string $slug): ?array {
+        $stmt = $this->db->prepare("SELECT * FROM pages WHERE slug = ?");
+        $stmt->execute([$slug]);
+        return $stmt->fetch() ?: null;
+    }
+
+    public function createPage(string $title, string $slug, string $description, string $content): bool {
+        $stmt = $this->db->prepare("INSERT INTO pages (title, slug, description, content) VALUES (?, ?, ?, ?)");
+        $success = $stmt->execute([$title, $slug, $description, $content]);
+        if ($success) {
+            $this->logger->log("Create Page", "Created page: $title ($slug)");
+        }
+        return $success;
+    }
+}
+
 try {
     $db = Database::getInstance();
     $userRepo = new UserRepository($db);
+    $pageRepo = new PageRepository($db);
     $logger = new Logger($db);
 } catch (RuntimeException $e) {
     if (basename($_SERVER['PHP_SELF']) !== 'dbcheck.php') {
