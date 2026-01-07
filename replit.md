@@ -1,49 +1,30 @@
-# W.D.G - Web Directory Guide
+# W.D.G - Web Directory Guide (Modern Edition)
 
 ## Overview
-A simple PHP and Bootstrap 4 web application for managing member information with full CRUD (Create, Read, Update, Delete) functionality. Originally designed for MySQL, now adapted to use PostgreSQL on Replit.
+A modernized PHP and Bootstrap 4 web application for managing member information. This version features a fully Object-Oriented architecture, secure PDO database interactions with PostgreSQL, and strict typing.
 
 ## Project Structure
 ```
-├── index.php          # Main page - lists all members
-├── add.php            # Add new member form
-├── edit.php           # Edit existing member
-├── delete.php         # Delete member handler
-├── config.php         # Database connection configuration
-├── dbcheck.php        # Database health check page
-├── footer.php         # Footer include file
-├── assets/
-│   ├── css/           # Bootstrap and custom CSS
-│   ├── js/            # Bootstrap and custom JavaScript
-│   ├── fonts/         # Glyphicons font files
-│   └── images/        # Application images
-└── w.d.g_base.sql     # Original MySQL schema (for reference)
+├── index.php          # Main dashboard - lists all members
+├── add.php            # Add member interface
+├── edit.php           # Edit member interface
+├── delete.php         # Secure deletion logic
+├── config.php         # Database & Repository (OOP)
+├── dbcheck.php        # System health & diagnostics
+├── footer.php         # Global footer
+└── assets/            # Frontend assets
 ```
+
+## Modern Features
+- **Object-Oriented**: Dedicated `UserRepository` and `Database` singleton.
+- **Security**: PDO prepared statements (SQL injection prevention), XSS protection (htmlspecialchars), and strict typing.
+- **Database**: Native PostgreSQL integration.
+- **Clean UI**: Updated Bootstrap 4 layouts.
 
 ## Tech Stack
-- **Backend**: PHP 8.4
-- **Database**: PostgreSQL (adapted from MySQL)
-- **Frontend**: Bootstrap 4, jQuery
-- **Server**: PHP built-in development server
+- **Backend**: PHP 8.4 (Strict Types)
+- **Database**: PostgreSQL (via PDO)
+- **Frontend**: Bootstrap 4
 
-## Database Schema
-Table: `wdg_users`
-- `id` - SERIAL PRIMARY KEY
-- `name` - VARCHAR(100)
-- `phonenumber` - VARCHAR(20)
-- `email` - VARCHAR(100)
-- `date` - TIMESTAMP (defaults to current timestamp)
-
-## Running the Application
-The application runs on port 5000 using PHP's built-in server:
-```
-php -S 0.0.0.0:5000
-```
-
-## Environment Variables
-- `DATABASE_URL` - PostgreSQL connection string (automatically provided by Replit)
-
-## Recent Changes
-- January 2026: Converted from MySQL (mysqli) to PostgreSQL (pg_*) functions
-- Added proper input sanitization with pg_escape_string and htmlspecialchars
-- Updated all database queries to PostgreSQL syntax
+## Environment
+- `DATABASE_URL`: Automatically managed by Replit.
