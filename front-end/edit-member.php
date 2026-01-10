@@ -51,16 +51,13 @@ if (empty($user)) {
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-md-8 col-lg-5">
-
                     <div class="card glass-card shadow-2xl animate-up position-relative">
-
                         <a href="members.php"
                            class="position-absolute top-0 end-0 m-3 btn btn-danger d-flex align-items-center justify-content-center rounded-circle shadow-sm transition-all"
                            style="z-index: 10; width: 38px; height: 38px; padding: 0;"
                            title="Cancel Edit">
                             <i class="bi bi-x-lg" style="font-size: 1.2rem;"></i>
                         </a>
-
                         <div style="height: 6px;" class="w-100 rounded-top bg-warning shadow-sm"></div>
 
                         <div class="card-body p-4 p-md-5">
@@ -116,7 +113,7 @@ if (empty($user)) {
                                     </button>
                                 </div>
                             </form>
-
+                            
                             <div id="loading-indicator" class="text-center py-5">
                                 <div class="spinner-border text-warning" role="status"></div>
                                 <p class="mt-2 text-warning mono small">FETCHING_DATA...</p>
@@ -126,10 +123,9 @@ if (empty($user)) {
 
                     <div class="mt-4 d-flex justify-content-between text-muted px-3 mono" style="font-size: 0.7rem;">
                         <span><i class="bi bi-pencil-fill me-1"></i> MODE: OVERWRITE</span>
-                        <span><i class="bi bi-shield-lock me-1"></i> AUTH: LEVEL 01</span>
-                        <span><i class="bi bi-cpu me-1"></i> STACK: REST API</span>
+                        <span><i class="bi bi-shield-lock me-1"></i> AUTH: LEVEL_01</span>
+                        <span><i class="bi bi-cpu me-1"></i> STACK: REST_API</span>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -140,8 +136,7 @@ if (empty($user)) {
     <script src="assets/js/root.js"></script>
     <script src="api-calling/reading-api.js"></script>
     <script src="api-calling/members-api.js"></script>
-    <script src="processing/edit-member.js"></script>
-    
+    <script src="api-calling/edit-member.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

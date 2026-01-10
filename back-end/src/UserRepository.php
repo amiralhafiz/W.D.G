@@ -15,6 +15,10 @@ class UserRepository {
         $this->logger = $logger;
     }
 
+    private function q(string $id): string {
+        return Database::quoteIdentifier($id);
+    }
+
     public function getPaginatedUsers(string $search, int $page = 1, int $limit = 10): array {
         $offset = ($page - 1) * $limit;
         $searchTerm = "%$search%";
@@ -27,7 +31,6 @@ class UserRepository {
                 LIMIT :limit OFFSET :offset";
 
         $stmt = $this->db->prepare($sql);
-
         $stmt->bindValue(':s1', $searchTerm, PDO::PARAM_STR);
         $stmt->bindValue(':s2', $searchTerm, PDO::PARAM_STR);
         $stmt->bindValue(':s3', $searchTerm, PDO::PARAM_STR);
@@ -46,17 +49,16 @@ class UserRepository {
     }
 
     public function getUserById(string $user): ?array {
-        $stmt = $this->db->prepare("SELECT * FROM wdg_users WHERE `user` = ?");
-        //$stmt = $this->db->prepare("SELECT * FROM wdg_users WHERE \"user\" = ?");
+        $u = $this->q('user');
+        $stmt = $this->db->prepare("SELECT * FROM wdg_users WHERE $u = ?");
         $stmt->execute([$user]);
         $userData = $stmt->fetch(PDO::FETCH_ASSOC);
-
         return $userData ?: null;
     }
 
     public function createUser(string $user, string $fullname, string $phonenumber, string $email): bool {
-        $stmt = $this->db->prepare("INSERT INTO wdg_users (`user`, fullname, phonenumber, email, date) VALUES (?, ?, ?, ?, NOW())");
-        //$stmt = $this->db->prepare("INSERT INTO wdg_users (\"user\", fullname, phonenumber, email, date) VALUES (?, ?, ?, ?, NOW())");
+        $u = $this->q('user');
+        $stmt = $this->db->prepare("INSERT INTO wdg_users ($u, fullname, phonenumber, email, date) VALUES (?, ?, ?, ?, NOW())");
         $success = $stmt->execute([$user, $fullname, $phonenumber, $email]);
 
         if ($success) {
@@ -66,8 +68,8 @@ class UserRepository {
     }
 
     public function updateUser(string $user, string $fullname, string $phonenumber, string $email): bool {
-        $stmt = $this->db->prepare("UPDATE wdg_users SET fullname = ?, phonenumber = ?, email = ? WHERE `user` = ?");
-        //$stmt = $this->db->prepare("UPDATE wdg_users SET fullname = ?, phonenumber = ?, email = ? WHERE \"user\" = ?");
+        $u = $this->q('user');
+        $stmt = $this->db->prepare("UPDATE wdg_users SET fullname = ?, phonenumber = ?, email = ? WHERE $u = ?");
         $success = $stmt->execute([$fullname, $phonenumber, $email, $user]);
 
         if ($success) {
@@ -77,9 +79,9 @@ class UserRepository {
     }
 
     public function deleteUser(string $user): bool {
+        $u = $this->q('user');
         $userData = $this->getUserById($user);
-        $stmt = $this->db->prepare("DELETE FROM wdg_users WHERE `user` = ?");
-        //$stmt = $this->db->prepare("DELETE FROM wdg_users WHERE \"user\" = ?");
+        $stmt = $this->db->prepare("DELETE FROM wdg_users WHERE $u = ?");
         $success = $stmt->execute([$user]);
 
         if ($success && $userData) {

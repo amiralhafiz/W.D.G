@@ -47,9 +47,7 @@ $userCount = $userRepo->getUserCount();
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-md-8 col-lg-5">
-
                     <div class="card glass-card shadow-2xl animate-up position-relative">
-
                         <a href="members.php"
                            class="position-absolute top-0 end-0 m-3 btn btn-danger d-flex align-items-center justify-content-center rounded-circle shadow-sm transition-all"
                            style="z-index: 10; width: 38px; height: 38px; padding: 0;"
@@ -104,11 +102,10 @@ $userCount = $userRepo->getUserCount();
                     </div>
 
                     <div class="mt-4 d-flex justify-content-between text-muted px-3 mono" style="font-size: 0.7rem;">
-                        <span><i class="bi bi-shield-lock me-1"></i> SECURE API</span>
-                        <span><i class="bi bi-database-up me-1"></i> UUID V4 ENABLED</span>
+                        <span><i class="bi bi-shield-lock me-1"></i> SECURE_API</span>
+                        <span><i class="bi bi-database-up me-1"></i> UUID_V4_ENABLED</span>
                         <span><i class="bi bi-hdd-stack me-1"></i> COUNT: <span id="footer-user-count"><?= number_format($userCount) ?></span></span>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -119,8 +116,7 @@ $userCount = $userRepo->getUserCount();
     <script src="assets/js/root.js"></script>
     <script src="api-calling/reading-api.js"></script>
     <script src="api-calling/members-api.js"></script>
-    <script src="processing/add-member.js"></script>
-    
+    <script src="api-calling/add-member.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
