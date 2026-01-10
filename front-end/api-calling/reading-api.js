@@ -288,7 +288,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     updateDashboardStats();
+    setInterval(updateDashboardStats, 1000);
 
-    if (document.getElementById('logs-table-body')) fetchLogs();
-    if (document.getElementById('members-table-body') || document.getElementById('members-mobile-view')) fetchMembers();
+    if (document.getElementById('logs-table-body')) {
+        fetchLogs();
+        setInterval(() => fetchLogs(currentSearch), 1000);
+    }
+    if (document.getElementById('members-table-body') || document.getElementById('members-mobile-view')) {
+        fetchMembers();
+        setInterval(() => fetchMembers(currentMemberSearch), 1000);
+    }
 });
