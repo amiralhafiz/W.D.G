@@ -1,7 +1,7 @@
 /**
  * READING-API.JS
  * Secured Core Logic for Logs, Members, and Web Pages
- * Version: 2.9 (AJAX Toggle & Full Logic Integration)
+ * Version: 3.1 (Centralized Confirmation & Reload)
  */
 
 let currentSearch = '';
@@ -27,7 +27,7 @@ function sanitizeQuery(str) {
 /**
  * UNIVERSAL DESTRUCTION MODAL TRIGGER
  */
-function openDestructionModal(title, targetUrl, label = 'TARGET IDENTITY') {
+function openDestructionModal(title, targetUrl, label = 'TARGET IDENTITY', callback = null) {
     const modalEl = document.getElementById('universalDeleteModal');
     if (!modalEl) return;
 
@@ -35,66 +35,87 @@ function openDestructionModal(title, targetUrl, label = 'TARGET IDENTITY') {
         document.body.appendChild(modalEl);
     }
 
-    document.getElementById('universal-modal-title').textContent = title;
-    document.getElementById('universal-modal-label').textContent = label;
-    document.getElementById('universal-btn-confirm').href = targetUrl;
+    // UI elements
+    const titleEl = document.getElementById('universal-modal-title');
+    const labelEl = document.getElementById('universal-modal-label');
+    const mainTitleEl = document.getElementById('modal-main-title');
+    const iconContainer = document.getElementById('modal-icon-container');
+    const highlightBox = document.getElementById('modal-highlight-box');
+    const subText = document.getElementById('modal-sub-text');
+    const confirmBtn = document.getElementById('universal-btn-confirm');
 
-    if (!universalModalInstance) {
-        universalModalInstance = new bootstrap.Modal(modalEl);
+    // Reset default styles (Deletion)
+    mainTitleEl.textContent = "Permanently Delete?";
+    iconContainer.innerHTML = '<i class="bi bi-trash3 text-danger" style="font-size: 4rem; opacity: 0.8;"></i>';
+    highlightBox.className = "p-3 mx-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-3 mb-3";
+    labelEl.className = "text-danger small mono opacity-75 d-block mb-1";
+    confirmBtn.className = "btn btn-danger rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center";
+    confirmBtn.innerHTML = '<i class="bi bi-radioactive me-2"></i> CONFIRM DELETION';
+    subText.innerHTML = '<i class="bi bi-info-circle me-1"></i> This action is irreversible.';
+
+    // Inject Data
+    titleEl.textContent = title;
+    labelEl.textContent = label;
+    
+    // Customize for Status Toggle
+    if (callback && label.includes('STATUS')) {
+        mainTitleEl.textContent = "Update Status?";
+        iconContainer.innerHTML = '<i class="bi bi-arrow-repeat text-info" style="font-size: 4rem; opacity: 0.8;"></i>';
+        highlightBox.className = "p-3 mx-3 bg-info bg-opacity-10 border border-info border-opacity-25 rounded-3 mb-3";
+        labelEl.className = "text-info small mono opacity-75 d-block mb-1";
+        confirmBtn.className = "btn btn-info rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center";
+        confirmBtn.innerHTML = '<i class="bi bi-check-lg me-2"></i> CONFIRM CHANGE';
+        subText.innerHTML = '<i class="bi bi-info-circle me-1"></i> Page will refresh to apply changes.';
     }
-    universalModalInstance.show();
+
+    // Handle confirm action
+    const newBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+    
+    if (callback) {
+        newBtn.removeAttribute('href');
+        newBtn.onclick = (e) => {
+            e.preventDefault();
+            callback();
+            const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            inst.hide();
+        };
+    } else {
+        newBtn.href = targetUrl;
+        newBtn.onclick = null;
+    }
+
+    const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    inst.show();
 }
 
-// --- 1. NAVIGATION & STATS LOGIC (New Section) ---
-
-/**
- * Fetches active pages and injects them into the Navbar
- */
+// --- 1. NAVIGATION & STATS LOGIC ---
 async function fetchNavPages() {
     const navContainer = document.getElementById('dynamic-nav-links');
     if (!navContainer) return;
-
     try {
         const response = await fetch('../back-end/api/pages.php?action=nav');
         const result = await response.json();
-
         if (result.status === 'success') {
-            // Preserving the static Dashboard link
             let navHtml = '<li class="nav-item"><a class="nav-link" href="index.php">Dashboard</a></li>';
-
-            // Appending dynamic pages
             result.data.forEach(page => {
-                navHtml += `
-                    <li class="nav-item">
-                        <a class="nav-link" href="view-page.php?slug=${escapeHTML(page.slug)}">
-                            ${escapeHTML(page.title)}
-                        </a>
-                    </li>`;
+                navHtml += `<li class="nav-item"><a class="nav-link" href="view-page.php?slug=${escapeHTML(page.slug)}">${escapeHTML(page.title)}</a></li>`;
             });
             navContainer.innerHTML = navHtml;
         }
-    } catch (e) {
-        console.error("Navigation load failed:", e);
-    }
+    } catch (e) { console.error("Navigation load failed:", e); }
 }
 
-/**
- * Updates the badge counts in the Settings Dropdown and DB Status
- */
 async function updateSystemStats() {
     try {
-        // Fetch Counts (assuming you have a 'count' action in your APIs)
         const [userRes, logRes, pageRes] = await Promise.all([
             fetch('../back-end/api/users.php?action=count').then(r => r.json()),
             fetch('../back-end/api/loggers.php?action=count').then(r => r.json()),
             fetch('../back-end/api/pages.php?action=count').then(r => r.json())
         ]);
-
         if (userRes.status === 'success') document.getElementById('users-count').textContent = userRes.count;
         if (logRes.status === 'success') document.getElementById('logs-count').textContent = logRes.count;
         if (pageRes.status === 'success') document.getElementById('pages-count').textContent = pageRes.count;
-
-        // Update DB Status Badge
         const statusBadge = document.querySelector('.db-status-badge');
         if (statusBadge) {
             statusBadge.classList.replace('bg-dark', 'bg-success');
@@ -115,7 +136,6 @@ async function fetchLogs(search = '', page = 1) {
     const tbody = document.getElementById('logs-table-body');
     if (!tbody) return;
     tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5"><div class="spinner-border text-dark mb-2"></div><div class="text-dark mono small opacity-50">LOADING...</div></td></tr>`;
-
     try {
         const response = await fetch(`../back-end/api/loggers.php?action=list&search=${encodeURIComponent(currentSearch)}&page=${page}`);
         const result = await response.json();
@@ -123,9 +143,7 @@ async function fetchLogs(search = '', page = 1) {
             renderLogs(result.data);
             renderPagination(result.pagination, 'logs');
         }
-    } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5 text-danger mono">CONNECTION ERROR</td></tr>`;
-    }
+    } catch (e) { tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5 text-danger mono">CONNECTION ERROR</td></tr>`; }
 }
 
 function renderLogs(logs) {
@@ -156,9 +174,7 @@ async function fetchMembers(search = '', page = 1) {
     const tbody = document.getElementById('members-table-body');
     const mobileContainer = document.getElementById('members-mobile-view');
     if (!tbody && !mobileContainer) return;
-
-    if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-dark mb-2"></div><div class="text-dark mono small opacity-50">LOADING...</div></td></tr>`;
-
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-dark mb-2"></div><div class="text-dark mono small opacity-50">LOADING...</div></td></tr>`;
     try {
         const response = await fetch(`../back-end/api/users.php?action=list&search=${encodeURIComponent(currentMemberSearch)}&page=${page}`);
         const result = await response.json();
@@ -167,16 +183,14 @@ async function fetchMembers(search = '', page = 1) {
             renderMembersMobile(result.data);
             renderPagination(result.pagination, 'members');
         }
-    } catch (e) {
-        if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">REGISTRY OFFLINE</td></tr>`;
-    }
+    } catch (e) { if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger mono">REGISTRY OFFLINE</td></tr>`; }
 }
 
 function renderMembersTable(users) {
     const tbody = document.getElementById('members-table-body');
     if (!tbody) return;
     if (!users || users.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">NO MEMBERS FOUND</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger mono">NO MEMBERS FOUND</td></tr>`;
         return;
     }
     tbody.innerHTML = users.map((user, index) => {
@@ -185,13 +199,12 @@ function renderMembersTable(users) {
         const deleteUrl = `delete.php?user=${encodeURIComponent(user.user)}`;
         const status = user.status || 'active';
         const statusClass = status === 'active' ? 'bg-success' : 'bg-danger';
-
         return `
         <tr style="animation-delay: ${index * 0.05}s" class="log-row">
             <td class="ps-4 mono small opacity-50 text-center">${safeUser.substring(0, 8)}</td>
             <td class="mono small opacity-75"><strong>${safeName}</strong></td>
             <td class="mono small opacity-75 text-center">
-                <button onclick="toggleMemberStatus('${user.user}', '${status}')" class="badge rounded-pill border-0 ${statusClass} shadow-sm px-3 py-2 cursor-pointer">
+                <button onclick="toggleMemberStatus('${user.user}', '${status}', event)" class="badge rounded-pill border-0 ${statusClass} shadow-sm px-3 py-2 cursor-pointer">
                     ${status.toUpperCase()}
                 </button>
             </td>
@@ -220,13 +233,12 @@ function renderMembersMobile(users) {
         const deleteUrl = `delete.php?user=${encodeURIComponent(user.user)}`;
         const status = user.status || 'active';
         const statusClass = status === 'active' ? 'bg-success' : 'bg-danger';
-
         return `
         <div class="card glass-card border-0 mb-3 log-row shadow-sm" style="animation-delay: ${index * 0.1}s">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div><h5 class="text-white mb-0">${safeName}</h5><span class="text-warning mono small opacity-50">#${safeUser.substring(0, 8)}</span></div>
-                    <button onclick="toggleMemberStatus('${user.user}', '${status}')" class="badge rounded-pill border-0 ${statusClass} px-3 py-2">
+                    <button onclick="toggleMemberStatus('${user.user}', '${status}', event)" class="badge rounded-pill border-0 ${statusClass} px-3 py-2">
                         ${status.toUpperCase()}
                     </button>
                 </div>
@@ -249,9 +261,7 @@ async function fetchPages(search = '', page = 1) {
     const tbody = document.getElementById('pages-table-body');
     const mobileContainer = document.getElementById('pages-mobile-view');
     if (!tbody && !mobileContainer) return;
-
     if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-info mb-2"></div><div class="text-info mono small opacity-50">SYNCING PAGES...</div></td></tr>`;
-
     try {
         const response = await fetch(`../back-end/api/pages.php?action=list&search=${encodeURIComponent(currentPagesSearch)}&page=${page}`);
         const result = await response.json();
@@ -260,42 +270,33 @@ async function fetchPages(search = '', page = 1) {
             renderPagesMobile(result.data);
             renderPagination(result.pagination, 'pages');
         }
-    } catch (e) {
-        if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">PAGES REGISTRY OFFLINE</td></tr>`;
-    }
+    } catch (e) { if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">PAGES REGISTRY OFFLINE</td></tr>`; }
 }
 
-/**
- * AJAX Page Toggle (Stay on Page)
- */
-async function togglePageStatus(id, currentStatus) {
+async function togglePageStatus(id, currentStatus, event) {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    try {
-        const response = await fetch(`../back-end/api/pages.php?action=toggle&id=${id}&status=${newStatus}`);
-        const result = await response.json();
-        if (result.status === 'success') {
-            // Refresh current view
-            fetchPages(currentPagesSearch, 1);
-        }
-    } catch (e) {
-        console.error("Toggle Error:", e);
-    }
+    const row = event.target.closest('tr') || event.target.closest('.card-body');
+    const title = row ? row.querySelector('h5, strong').textContent : 'this page';
+    openDestructionModal(title, '#', `TARGET STATUS: ${newStatus.toUpperCase()}`, async () => {
+        try {
+            const response = await fetch(`../back-end/api/pages.php?action=toggle&id=${id}&status=${newStatus}`);
+            const result = await response.json();
+            if (result.status === 'success') location.reload();
+        } catch (e) { console.error("Toggle Error:", e); }
+    });
 }
 
-/**
- * AJAX Member Toggle (Stay on Page)
- */
-async function toggleMemberStatus(user, currentStatus) {
+async function toggleMemberStatus(user, currentStatus, event) {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    try {
-        const response = await fetch(`../back-end/api/users.php?action=toggle&user=${encodeURIComponent(user)}&status=${newStatus}`);
-        const result = await response.json();
-        if (result.status === 'success') {
-            fetchMembers(currentMemberSearch, 1);
-        }
-    } catch (e) {
-        console.error("Member Toggle Error:", e);
-    }
+    const row = event.target.closest('tr') || event.target.closest('.card-body');
+    const title = row ? row.querySelector('h5, strong').textContent : 'this member';
+    openDestructionModal(title, '#', `TARGET STATUS: ${newStatus.toUpperCase()}`, async () => {
+        try {
+            const response = await fetch(`../back-end/api/users.php?action=toggle&user=${encodeURIComponent(user)}&status=${newStatus}`);
+            const result = await response.json();
+            if (result.status === 'success') location.reload();
+        } catch (e) { console.error("Member Toggle Error:", e); }
+    });
 }
 
 function renderPagesTable(pages) {
@@ -309,13 +310,12 @@ function renderPagesTable(pages) {
         const safeTitle = escapeHTML(p.title);
         const statusClass = p.status === 'active' ? 'bg-success' : 'bg-danger';
         const deleteUrl = `pages-list.php?action=delete&id=${p.id}`;
-
         return `
         <tr style="animation-delay: ${index * 0.05}s" class="log-row">
             <td class="ps-4 mono small opacity-75"><strong>${safeTitle}</strong></td>
             <td class="mono small opacity-75">/${escapeHTML(p.slug)}</td>
             <td class="text-center">
-                <button onclick="togglePageStatus(${p.id}, '${p.status}')" class="badge rounded-pill border-0 ${statusClass} shadow-sm px-3 py-2 cursor-pointer">
+                <button onclick="togglePageStatus(${p.id}, '${p.status}', event)" class="badge rounded-pill border-0 ${statusClass} shadow-sm px-3 py-2 cursor-pointer">
                     ${p.status.toUpperCase()}
                 </button>
             </td>
@@ -342,13 +342,12 @@ function renderPagesMobile(pages) {
         const safeTitle = escapeHTML(p.title);
         const statusClass = p.status === 'active' ? 'bg-success' : 'bg-danger';
         const deleteUrl = `pages-list.php?action=delete&id=${p.id}`;
-
         return `
         <div class="card glass-card border-0 mb-3 log-row shadow-sm" style="animation-delay: ${index * 0.1}s">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div><h5 class="text-white mb-0">${safeTitle}</h5><span class="text-info mono small opacity-50">/${escapeHTML(p.slug)}</span></div>
-                    <button onclick="togglePageStatus(${p.id}, '${p.status}')" class="badge rounded-pill border-0 ${statusClass} px-3 py-2">
+                    <button onclick="togglePageStatus(${p.id}, '${p.status}', event)" class="badge rounded-pill border-0 ${statusClass} px-3 py-2">
                         ${p.status.toUpperCase()}
                     </button>
                 </div>
@@ -371,61 +370,36 @@ function handleKeyup(event, type) {
     const btn = type === 'logs' ? 'resetSearch' : (type === 'members' ? 'resetMemberSearch' : 'resetPageSearch');
     const inputEl = document.getElementById(id);
     if (!inputEl) return;
-
     const val = inputEl.value;
     const el = document.getElementById(btn);
     if(el) val.length > 0 ? el.classList.remove('d-none') : el.classList.add('d-none');
-
     if (event.key === 'Enter') {
         if (type === 'logs') applyFilter();
         else if (type === 'members') applyMemberFilter();
         else applyPageFilter();
     }
 }
-
 function applyFilter() { fetchLogs(document.getElementById('logSearch').value, 1); }
 function applyMemberFilter() { fetchMembers(document.getElementById('memberSearch').value, 1); }
 function applyPageFilter() { fetchPages(document.getElementById('pageSearch').value, 1); }
-
 function resetFilter(type) {
-    if (type === 'logs') {
-        document.getElementById('logSearch').value = '';
-        document.getElementById('resetSearch')?.classList.add('d-none');
-        fetchLogs('', 1);
-    }
-    else if (type === 'members') {
-        document.getElementById('memberSearch').value = '';
-        document.getElementById('resetMemberSearch')?.classList.add('d-none');
-        fetchMembers('', 1);
-    }
-    else {
-        document.getElementById('pageSearch').value = '';
-        document.getElementById('resetPageSearch')?.classList.add('d-none');
-        fetchPages('', 1);
-    }
+    if (type === 'logs') { document.getElementById('logSearch').value = ''; document.getElementById('resetSearch')?.classList.add('d-none'); fetchLogs('', 1); }
+    else if (type === 'members') { document.getElementById('memberSearch').value = ''; document.getElementById('resetMemberSearch')?.classList.add('d-none'); fetchMembers('', 1); }
+    else { document.getElementById('pageSearch').value = ''; document.getElementById('resetPageSearch')?.classList.add('d-none'); fetchPages('', 1); }
 }
-
 function renderPagination(pg, type) {
     let containerId = '';
     if (type === 'logs') containerId = 'pagination-container';
     else if (type === 'members') containerId = 'member-pagination-container';
     else if (type === 'pages') containerId = 'page-pagination-container';
-
     const container = document.getElementById(containerId);
-    if (!container || !pg || pg.total_pages <= 1) {
-        if(container) container.innerHTML = '';
-        return;
-    }
-
+    if (!container || !pg || pg.total_pages <= 1) { if(container) container.innerHTML = ''; return; }
     const func = type === 'logs' ? 'fetchLogs' : (type === 'members' ? 'fetchMembers' : 'fetchPages');
     const search = type === 'logs' ? currentSearch : (type === 'members' ? currentMemberSearch : currentPagesSearch);
     const safeS = escapeHTML(search).replace(/'/g, "\\'");
-
     let html = '<ul class="pagination justify-content-center">';
     html += `<li class="page-item ${pg.current_page === 1 ? 'disabled' : ''}"><button class="page-link glass-pagination" onclick="${func}('${safeS}', ${pg.current_page - 1})"><i class="bi bi-chevron-left"></i></button></li>`;
-    for (let i = 1; i <= pg.total_pages; i++) {
-        html += `<li class="page-item ${i === pg.current_page ? 'active' : ''}"><button class="page-link glass-pagination ${i === pg.current_page ? 'active' : ''}" onclick="${func}('${safeS}', ${i})">${i}</button></li>`;
-    }
+    for (let i = 1; i <= pg.total_pages; i++) { html += `<li class="page-item ${i === pg.current_page ? 'active' : ''}"><button class="page-link glass-pagination ${i === pg.current_page ? 'active' : ''}" onclick="${func}('${safeS}', ${i})">${i}</button></li>`; }
     html += `<li class="page-item ${pg.current_page === pg.total_pages ? 'disabled' : ''}"><button class="page-link glass-pagination" onclick="${func}('${safeS}', ${pg.current_page + 1})"><i class="bi bi-chevron-right"></i></button></li></ul>`;
     container.innerHTML = html;
 }
@@ -440,12 +414,8 @@ document.addEventListener('DOMContentLoaded', () => {
             sess.textContent = Array.from(b).map(x => x.toString(16).padStart(2,'0')).join('').toUpperCase();
         } catch(e){ sess.textContent = "AUTH_ACTIVE"; }
     }
-
-    // Run Header Updates
     fetchNavPages();
     updateSystemStats();
-
-    // Run Page-Specific Logic
     if (document.getElementById('members-table-body')) fetchMembers();
     if (document.getElementById('pages-table-body')) fetchPages();
     if (document.getElementById('logs-table-body')) fetchLogs();
