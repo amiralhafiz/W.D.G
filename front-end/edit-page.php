@@ -7,13 +7,7 @@ global $pageRepo;
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $page = null;
 if ($id > 0) {
-    $allPages = $pageRepo->getAllPages();
-    foreach ($allPages as $p) {
-        if ($p['id'] == $id) {
-            $page = $p;
-            break;
-        }
-    }
+    $page = $pageRepo->getPageById($id);
 }
 
 if (!$page) {
@@ -29,9 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = $_POST['status'] ?? 'active';
 
     if ($title && $content) {
-        $db = \App\Database::getInstance();
-        $stmt = $db->prepare("UPDATE wdg_pages SET title = ?, slug = ?, description = ?, content = ?, status = ? WHERE id = ?");
-        $stmt->execute([$title, $slug, $description, $content, $status, $id]);
+        $pageRepo->updatePage($id, $status, $title, $slug, $description, $content);
         header("Location: pages-list.php?updated=1");
         exit;
     }

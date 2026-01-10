@@ -11,7 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $content = $_POST['content'] ?? '';
 
     if ($title && $content) {
-        $pageRepo->createPage($title, $slug, $description, $content);
+        $status = 'active'; // Set a default status
+        $pageRepo->createPage($status, $title, $slug, $description, $content);
         header("Location: index.php?page_created=1");
         exit;
     }
