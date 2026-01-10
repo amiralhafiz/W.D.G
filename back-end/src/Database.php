@@ -15,7 +15,7 @@ class Database {
         if (self::$instance === null) {
             $databaseUrl = getenv('DATABASE_URL');
 
-            if ($databaseUrl) {
+            if ($databaseUrl && str_starts_with($databaseUrl, 'postgres')) {
                 // PostgreSQL on Replit
                 $parsedUrl = parse_url($databaseUrl);
                 $host = $parsedUrl['host'] ?? '';
@@ -32,7 +32,7 @@ class Database {
                 $port   = defined('DB_PORT') ? DB_PORT : 3306;
                 $dbName = defined('DB_NAME') ? DB_NAME : 'wdg_db';
                 $user   = defined('DB_USER') ? DB_USER : 'root';
-                $pass   = defined('DB_PASS') ? DB_PASS : 'Aremay@91';
+                $pass   = defined('DB_PASS') ? DB_PASS : '';
 
                 $dsn = "mysql:host=$host;port=$port;dbname=$dbName;charset=utf8mb4";
                 self::$instance = new PDO($dsn, $user, $pass);
