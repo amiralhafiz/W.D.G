@@ -1,9 +1,6 @@
 <?php
 declare(strict_types=1);
-
 require_once "config.php";
-
-$userCount = $userRepo->getUserCount();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -49,7 +46,7 @@ $userCount = $userRepo->getUserCount();
                                     <label class="form-label text-info small mono mb-1">FULLNAME</label>
                                     <div class="input-group border border-white border-opacity-10 rounded-3 overflow-hidden bg-black bg-opacity-25">
                                         <span class="input-group-text bg-transparent border-0 text-light"><i class="bi bi-person"></i></span>
-                                        <input type="text" class="form-control bg-transparent border-0 text-white py-2 shadow-none" name="fullname" placeholder="e.g. John Doe" required>
+                                        <input type="text" class="form-control bg-transparent border-0 text-white py-2 shadow-none" id="fullname" name="fullname" placeholder="e.g. John Doe" required>
                                     </div>
                                 </div>
 
@@ -57,7 +54,7 @@ $userCount = $userRepo->getUserCount();
                                     <label class="form-label text-info small mono mb-1">CONTACT VOICE</label>
                                     <div class="input-group border border-white border-opacity-10 rounded-3 overflow-hidden bg-black bg-opacity-25">
                                         <span class="input-group-text bg-transparent border-0 text-light"><i class="bi bi-telephone"></i></span>
-                                        <input type="text" class="form-control bg-transparent border-0 text-white py-2 shadow-none" name="phonenumber" placeholder="+00 000 0000" required>
+                                        <input type="text" class="form-control bg-transparent border-0 text-white py-2 shadow-none" id="phonenumber" name="phonenumber" placeholder="+00 000 0000" required>
                                     </div>
                                 </div>
 
@@ -65,7 +62,7 @@ $userCount = $userRepo->getUserCount();
                                     <label class="form-label text-info small mono mb-1">EMAIL ACCESS POINT</label>
                                     <div class="input-group border border-white border-opacity-10 rounded-3 overflow-hidden bg-black bg-opacity-25">
                                         <span class="input-group-text bg-transparent border-0 text-light"><i class="bi bi-envelope"></i></span>
-                                        <input type="email" class="form-control bg-transparent border-0 text-light py-2 shadow-none" name="email" placeholder="user@wdg-system.com" required>
+                                        <input type="email" class="form-control bg-transparent border-0 text-light py-2 shadow-none" id="email" name="email" placeholder="user@wdg-system.com" required>
                                     </div>
                                 </div>
 
@@ -81,7 +78,7 @@ $userCount = $userRepo->getUserCount();
                     <div class="mt-4 d-flex justify-content-between text-muted px-3 mono" style="font-size: 0.7rem;">
                         <span><i class="bi bi-shield-lock me-1"></i> SECURE_API</span>
                         <span><i class="bi bi-database-up me-1"></i> UUID_V4_ENABLED</span>
-                        <span><i class="bi bi-hdd-stack me-1"></i> COUNT: <span id="footer-user-count"><?= number_format($userCount) ?></span></span>
+                        <span><i class="bi bi-hdd-stack me-1"></i> COUNT: <span id="footer-user-count">...</span></span>
                     </div>
                 </div>
             </div>
