@@ -1,19 +1,7 @@
 <?php
 // front-end/header.php
-global $userRepo, $logger, $pageRepo;
-$totalUsers = $userRepo->getUserCount();
-$totalLogs = $logger->getLogCount();
-$totalPages = $pageRepo->getPageCount();
-
-// 2. NEW: Fetch the pages for the navbar loop
-$activePages = $pageRepo->getActivePages(true);
-
-try {
-    $db = \App\Database::getInstance();
-    $status = "Connected";
-} catch (\Exception $e) {
-    $status = "Error";
-}?>
+// This is now purely structural. Dynamic data is handled by reading-api.js
+?>
 <nav class="navbar navbar-expand-lg navbar-dark bg-transparent border-bottom border-secondary border-opacity-25 sticky-top">
     <div class="container">
         <a class="navbar-brand fw-bold text-uppercase tracking-wider" href="index.php">
@@ -23,41 +11,34 @@ try {
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
+            <ul class="navbar-nav me-auto" id="dynamic-nav-links">
                 <li class="nav-item"><a class="nav-link" href="index.php">Dashboard</a></li>
-
-                <?php foreach ($activePages as $p): ?>
-                    <li class="nav-item"><a class="nav-link" href="view-page.php?slug=<?= htmlspecialchars($p['slug']) ?>"><?= htmlspecialchars($p['title']) ?></a></li>
-                <?php endforeach; ?>
-
+                <!-- Active Pages will be injected here by JS -->
+            </ul>
+            <ul class="navbar-nav">
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Settings
+                        <i class="bi bi-gear-fill me-1"></i> Settings
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark bg-black bg-opacity-75 border-secondary" aria-labelledby="settingsDropdown">
-
                         <li>
                             <a class="dropdown-item d-flex justify-content-between align-items-center" href="members.php">
                                 <span><i class="bi bi-people me-2"></i>Members</span>
-                                <span class="badge bg-primary rounded-pill ms-2"><span id="users-count"><?= number_format($totalUsers) ?></span></span>
+                                <span class="badge bg-primary rounded-pill ms-2"><span id="users-count">...</span></span>
                             </a>
                         </li>
-
                         <li>
                             <a class="dropdown-item d-flex justify-content-between align-items-center" href="logs.php">
                                 <span><i class="bi bi-journal-text me-2"></i>Logs</span>
-                                <span class="badge bg-warning text-dark rounded-pill ms-2"><span id="logs-count"><?= number_format($totalLogs) ?></span></span>
+                                <span class="badge bg-warning text-dark rounded-pill ms-2"><span id="logs-count">...</span></span>
                             </a>
                         </li>
-
                         <li><hr class="dropdown-divider border-secondary"></li>
-
                         <li><h6 class="dropdown-header text-uppercase text-light-50 small">Page Management</h6></li>
-
                         <li>
-                            <a class="dropdown-item" href="pages-list.php">
-                                <i class="bi bi-list-ul me-2"></i> Manage Pages
-                                <span class="badge bg-primary rounded-pill ms-2"><span id="pages-count"><?= number_format($totalPages) ?></span></span>
+                            <a class="dropdown-item d-flex justify-content-between align-items-center" href="pages-list.php">
+                                <span><i class="bi bi-list-ul me-2"></i>Manage Pages</span>
+                                <span class="badge bg-info text-dark rounded-pill ms-2"><span id="pages-count">...</span></span>
                             </a>
                         </li>
                         <li>
@@ -65,13 +46,11 @@ try {
                                 <i class="bi bi-plus-circle me-2"></i> Create New
                             </a>
                         </li>
-
                     </ul>
                 </li>
             </ul>
-
             <div class="navbar-text ms-auto">
-                <span class="badge bg-success rounded-pill db-status-badge">DB: <?= htmlspecialchars($status) ?></span>
+                <span class="badge bg-success rounded-pill db-status-badge">DB: CHECKING...</span>
             </div>
         </div>
     </div>

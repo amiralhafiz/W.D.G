@@ -45,24 +45,6 @@ function openDestructionModal(title, targetUrl, label = 'TARGET IDENTITY') {
     universalModalInstance.show();
 }
 
-// --- 1. DASHBOARD STATS ---
-async function updateDashboardStats() {
-    const endpoints = {
-        'users-count': '../back-end/api/users.php?action=count',
-        'logs-count': '../back-end/api/loggers.php?action=count',
-        'pages-count': '../back-end/api/pages.php?action=count'
-    };
-    for (const [id, url] of Object.entries(endpoints)) {
-        try {
-            const response = await fetch(url);
-            if (response.ok) {
-                const result = await response.json();
-                const el = document.getElementById(id);
-                if (el && result.status === 'success') el.textContent = result.count;
-            }
-        } catch (e) {}
-    }
-}
 
 // --- 2. SYSTEM LOGS LOGIC ---
 async function fetchLogs(search = '', page = 1) {
@@ -369,10 +351,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e){ sess.textContent = "AUTH_ACTIVE"; }
     }
 
-    updateDashboardStats();
-    setInterval(updateDashboardStats, 1000);
-
-    if (document.getElementById('logs-table-body')) fetchLogs();
     if (document.getElementById('members-table-body')) fetchMembers();
     if (document.getElementById('pages-table-body')) fetchPages();
 });
