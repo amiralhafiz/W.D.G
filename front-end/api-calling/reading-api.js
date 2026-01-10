@@ -136,7 +136,7 @@ function renderMembersTable(users) {
     }
 
     tbody.innerHTML = users.map((user, index) => {
-        const safeUser = escapeHTML(user.user);
+        const safeUser = escapeHTML(user.user) + ' - ' + escapeHTML(user.fullname);
         return `
         <tr style="animation-delay: ${index * 0.05}s" class="log-row">
             <td class="ps-4 mono small opacity-50 text-center">${safeUser.substring(0, 8)}</td>
@@ -145,7 +145,7 @@ function renderMembersTable(users) {
             <td class="mono small opacity-75 text-center">${escapeHTML(user.email)}</td>
             <td class="pe-4 text-center">
                 <a href="edit-member.php?user=${encodeURIComponent(user.user)}" class="btn btn-sm btn-outline-primary border-0 rounded-circle"><i class="bi bi-pencil-square"></i></a>
-                <a href="delete.php?user=${encodeURIComponent(user.user)}" class="btn btn-sm btn-outline-danger border-0 rounded-circle ms-2" onclick="return confirm('DESTROY_RECORD: ${safeUser}?')"><i class="bi bi-trash"></i></a>
+                <a href="delete.php?user=${encodeURIComponent(user.user)}" class="btn btn-sm btn-outline-danger border-0 rounded-circle ms-2" onclick="return confirm('DESTROY RECORD: ${safeUser}?')"><i class="bi bi-trash"></i></a>
             </td>
         </tr>`}).join('');
 }
@@ -160,7 +160,7 @@ function renderMembersMobile(users) {
     }
 
     container.innerHTML = users.map((user, index) => {
-        const safeUser = escapeHTML(user.user);
+        const safeUser = escapeHTML(user.user) + ' - ' + escapeHTML(user.fullname);
         return `
         <div class="card glass-card border-0 mb-3 log-row shadow-sm" style="animation-delay: ${index * 0.1}s">
             <div class="card-body p-4">
@@ -177,7 +177,7 @@ function renderMembersMobile(users) {
                 </div>
                 <div class="d-flex gap-2">
                     <a href="edit-member.php?user=${encodeURIComponent(user.user)}" class="btn btn-primary flex-fill fw-bold rounded-3">EDIT</a>
-                    <a href="delete.php?user=${encodeURIComponent(user.user)}" class="btn btn-outline-danger flex-fill fw-bold rounded-3" onclick="return confirm('DESTROY_RECORD: ${safeUser}?')">DELETE</a>
+                    <a href="delete.php?user=${encodeURIComponent(user.user)}" class="btn btn-outline-danger flex-fill fw-bold rounded-3" onclick="return confirm('DESTROY RECORD: ${safeUser}?')">DELETE</a>
                 </div>
             </div>
         </div>`}).join('');

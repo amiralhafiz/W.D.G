@@ -12,5 +12,5 @@ if ($user) {
 }
 
 // 3. Redirect back to the main page
-header("Location: index.php");
+header("Location: members.php");
 exit;

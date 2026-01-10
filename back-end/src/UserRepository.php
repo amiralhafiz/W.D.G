@@ -46,7 +46,8 @@ class UserRepository {
     }
 
     public function getUserById(string $user): ?array {
-        $stmt = $this->db->prepare("SELECT * FROM wdg_users WHERE \"user\" = ?");
+        $stmt = $this->db->prepare("SELECT * FROM wdg_users WHERE `user` = ?");
+        //$stmt = $this->db->prepare("SELECT * FROM wdg_users WHERE \"user\" = ?");
         $stmt->execute([$user]);
         $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -54,7 +55,8 @@ class UserRepository {
     }
 
     public function createUser(string $user, string $fullname, string $phonenumber, string $email): bool {
-        $stmt = $this->db->prepare("INSERT INTO wdg_users (\"user\", fullname, phonenumber, email, date) VALUES (?, ?, ?, ?, NOW())");
+        $stmt = $this->db->prepare("INSERT INTO wdg_users (`user`, fullname, phonenumber, email, date) VALUES (?, ?, ?, ?, NOW())");
+        //$stmt = $this->db->prepare("INSERT INTO wdg_users (\"user\", fullname, phonenumber, email, date) VALUES (?, ?, ?, ?, NOW())");
         $success = $stmt->execute([$user, $fullname, $phonenumber, $email]);
 
         if ($success) {
@@ -64,7 +66,8 @@ class UserRepository {
     }
 
     public function updateUser(string $user, string $fullname, string $phonenumber, string $email): bool {
-        $stmt = $this->db->prepare("UPDATE wdg_users SET fullname = ?, phonenumber = ?, email = ? WHERE \"user\" = ?");
+        $stmt = $this->db->prepare("UPDATE wdg_users SET fullname = ?, phonenumber = ?, email = ? WHERE `user` = ?");
+        //$stmt = $this->db->prepare("UPDATE wdg_users SET fullname = ?, phonenumber = ?, email = ? WHERE \"user\" = ?");
         $success = $stmt->execute([$fullname, $phonenumber, $email, $user]);
 
         if ($success) {
@@ -75,7 +78,8 @@ class UserRepository {
 
     public function deleteUser(string $user): bool {
         $userData = $this->getUserById($user);
-        $stmt = $this->db->prepare("DELETE FROM wdg_users WHERE \"user\" = ?");
+        $stmt = $this->db->prepare("DELETE FROM wdg_users WHERE `user` = ?");
+        //$stmt = $this->db->prepare("DELETE FROM wdg_users WHERE \"user\" = ?");
         $success = $stmt->execute([$user]);
 
         if ($success && $userData) {

@@ -48,15 +48,15 @@ try {
             if (!$data) {
                 throw new Exception("Invalid JSON data");
             }
-            
+
             $fullname = $data['fullname'] ?? '';
             $phone = $data['phonenumber'] ?? '';
             $email = $data['email'] ?? '';
-            
+
             if (!$fullname || !$phone || !$email) {
                 throw new Exception("Missing required fields");
             }
-            
+
             $user = sprintf(
                 '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
                 mt_rand(0, 0xffff), mt_rand(0, 0xffff),
@@ -65,7 +65,7 @@ try {
                 mt_rand(0, 0x3fff) | 0x8000,
                 mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
             );
-            
+
             if ($userRepo->createUser($user, $fullname, $phone, $email)) {
                 echo json_encode(['status' => 'success', 'message' => 'User created successfully']);
             } else {
@@ -87,16 +87,16 @@ try {
         case 'update':
             $data = json_decode(file_get_contents("php://input"), true);
             if (!$data) throw new Exception("Invalid JSON data");
-            
+
             $user = $data['user'] ?? '';
             $fullname = $data['fullname'] ?? '';
             $phone = $data['phonenumber'] ?? '';
             $email = $data['email'] ?? '';
-            
+
             if (!$user || !$fullname || !$phone || !$email) {
                 throw new Exception("Missing required fields");
             }
-            
+
             if ($userRepo->updateUser($user, $fullname, $phone, $email)) {
                 echo json_encode(['status' => 'success', 'message' => 'User updated successfully']);
             } else {

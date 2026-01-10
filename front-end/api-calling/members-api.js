@@ -1,6 +1,6 @@
 // front-end/api-calling/members-api.js
 
-const API_BASE_URL = '/back-end/api/users.php';
+const API_BASE_URL = '../back-end/api/users.php';
 
 async function addMember(memberData) {
     try {

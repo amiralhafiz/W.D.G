@@ -73,7 +73,7 @@ try {
                         </div>
                         <button type="button" onclick="applyMemberFilter()" class="btn btn-outline-info px-4 rounded-3 fw-bold">FILTER</button>
                         <a href="add-member.php" class="btn btn-outline-primary px-4 rounded-3 fw-bold text-nowrap d-flex align-items-center">
-                            <i class="bi bi-person-plus-fill me-2"></i> ADD_NEW
+                            <i class="bi bi-person-plus-fill me-2"></i> ADD NEW
                         </a>
                     </div>
                 </div>
