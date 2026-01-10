@@ -4,36 +4,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     const editForm = document.getElementById('edit-member-form');
     if (!editForm) return;
 
-    const userId = document.getElementById('form-user-id').value;
+    // 1. Get the user ID from the URL string
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('user');
+
+    // 2. Client-side Validation: If no user ID, go back to list
+    if (!userId) {
+        window.location.href = 'members.php';
+        return;
+    }
+
+    // Set the hidden input value
+    document.getElementById('form-user-id').value = userId;
+
+    // 3. Fetch member data from API
     const result = await getMember(userId);
-    
     const loadingIndicator = document.getElementById('loading-indicator');
-    
+
     if (result.status === 'success') {
         document.getElementById('display-user-id').textContent = userId.substring(0, 8) + '...';
         document.getElementById('fullname').value = result.data.fullname;
         document.getElementById('phonenumber').value = result.data.phonenumber;
         document.getElementById('email').value = result.data.email;
-        
+
         if (loadingIndicator) loadingIndicator.style.display = 'none';
         editForm.style.display = 'block';
     } else {
+        // If API fails to find the user, redirect
         window.location.href = 'members.php';
     }
 
+    // 4. Handle Form Submission
     editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
-        
+
         const submitBtn = e.target.querySelector('button[type="submit"]');
         const originalBtnHtml = submitBtn.innerHTML;
-        
+
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Updating...';
 
         const updateResult = await updateMember(data);
-        
+
         if (updateResult.status === 'success') {
             window.location.href = 'members.php';
         } else {

@@ -1,7 +1,8 @@
 <?php
+// /front-end/add-member.php
 declare(strict_types=1);
-require_once "config.php";
-?>
+
+require_once "config.php"; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -86,7 +87,7 @@ require_once "config.php";
     </main>
 
     <?php include_once ("footer.php"); ?>
-    
+
     <script src="api-calling/members-api.js"></script>
     <script src="api-calling/add-member.js"></script>
 </body>

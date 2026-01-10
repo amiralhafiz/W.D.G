@@ -92,6 +92,25 @@ try {
             echo json_encode(['status' => 'success', 'data' => $pageData]);
             break;
 
+        // Find case 'get' and update/add case 'get_by_slug'
+        case 'get_by_slug':
+            $slug = preg_replace('/[^a-z0-9\-]/', '', strtolower($_GET['slug'] ?? ''));
+
+            if (!$slug) {
+                throw new Exception("Slug identifier required");
+            }
+
+            $pageData = $pageRepo->getPageBySlug($slug);
+
+            if (!$pageData) {
+                http_response_code(404);
+                echo json_encode(['status' => 'error', 'message' => 'Page node not found']);
+                exit;
+            }
+
+            echo json_encode(['status' => 'success', 'data' => $pageData]);
+            break;
+
         case 'update':
             $data = json_decode(file_get_contents("php://input"), true);
             if (!$data) throw new Exception("Invalid JSON data");

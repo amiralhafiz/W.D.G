@@ -2,10 +2,7 @@
 // front-end/pages-list.php
 declare(strict_types=1);
 
-require_once "config.php";
-// CLEAN: All Legacy PHP Action logic (toggle/delete) has been removed.
-// These are now handled by reading-api.js calling back-end/api/pages.php
-?>
+require_once "config.php"; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
