@@ -123,6 +123,18 @@ try {
             }
             break;
 
+        case 'toggle':
+            $id = (int)($_GET['id'] ?? 0);
+            $status = htmlspecialchars(strip_tags($_GET['status'] ?? ''), ENT_QUOTES, 'UTF-8');
+            if (!$id || !$status) throw new Exception("ID and Status required for toggle");
+
+            if ($pageRepo->togglePageStatus($id, $status)) {
+                echo json_encode(['status' => 'success', 'message' => 'Page status updated']);
+            } else {
+                throw new Exception("Failed to toggle page status");
+            }
+            break;
+
         case 'nav':
             // Fetches only active pages for the header
             $pages = $pageRepo->getActivePages(true);

@@ -104,6 +104,16 @@ class PageRepository {
         return $success;
     }
 
+    public function togglePageStatus(int $id, string $status): bool {
+        $stmt = $this->db->prepare("UPDATE wdg_pages SET status = ? WHERE id = ?");
+        $success = $stmt->execute([$status, $id]);
+
+        if ($success) {
+            $this->logger->log("Toggle Page Status", "Changed page ID: $id status to: $status");
+        }
+        return $success;
+    }
+
     public function getPageCount(): int {
         return (int) $this->db->query("SELECT COUNT(*) FROM wdg_pages")->fetchColumn();
     }
