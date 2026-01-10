@@ -1,4 +1,4 @@
-<!-- author : Amir Al-Hafiz -->
+<?php // front-end/footer.php ?>
 <footer class="footer mt-auto py-3 text-white fixed-bottom">
     <div class="container text-center">
         <?php echo " Free Software License Ⓓ " . date("Y") . " by W.D.G "; ?>
@@ -7,3 +7,6 @@
 </footer>
 
 <script src="api-calling/version.js"></script>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

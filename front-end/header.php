@@ -3,6 +3,7 @@
 global $userRepo, $logger, $pageRepo;
 $totalUsers = $userRepo->getUserCount();
 $totalLogs = $logger->getLogCount();
+$totalPages = $pageRepo->getTotalCount();
 try {
     $db = \App\Database::getInstance();
     $status = "Connected";
@@ -22,22 +23,51 @@ $activePages = $pageRepo->getAllPages(true);
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" href="index.php">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="members.php">Members <span class="badge bg-primary rounded-pill"><span id="users-count"><?= number_format($totalUsers) ?></span></span></a></li>
-                <li class="nav-item"><a class="nav-link" href="logs.php">Logs <span class="badge bg-warning text-dark rounded-pill"><span id="logs-count"><?= number_format($totalLogs) ?></span></span></a></li>
+
+                <?php foreach ($activePages as $p): ?>
+                    <li class="nav-item"><a class="nav-link" href="view-page.php?slug=<?= htmlspecialchars($p['slug']) ?>"><?= htmlspecialchars($p['title']) ?></a></li>
+                <?php endforeach; ?>
+
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Pages
+                    <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Settings
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-dark bg-black bg-opacity-75 border-secondary" aria-labelledby="pagesDropdown">
-                        <li><a class="dropdown-item" href="pages-list.php"><i class="bi bi-list-ul me-2"></i> Manage Pages</a></li>
-                        <li><a class="dropdown-item" href="add-page.php"><i class="bi bi-plus-circle me-2"></i> Create New</a></li>
+                    <ul class="dropdown-menu dropdown-menu-dark bg-black bg-opacity-75 border-secondary" aria-labelledby="settingsDropdown">
+
+                        <li>
+                            <a class="dropdown-item d-flex justify-content-between align-items-center" href="members.php">
+                                <span><i class="bi bi-people me-2"></i>Members</span>
+                                <span class="badge bg-primary rounded-pill ms-2"><span id="users-count"><?= number_format($totalUsers) ?></span></span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex justify-content-between align-items-center" href="logs.php">
+                                <span><i class="bi bi-journal-text me-2"></i>Logs</span>
+                                <span class="badge bg-warning text-dark rounded-pill ms-2"><span id="logs-count"><?= number_format($totalLogs) ?></span></span>
+                            </a>
+                        </li>
+
                         <li><hr class="dropdown-divider border-secondary"></li>
-                        <?php foreach ($activePages as $p): ?>
-                            <li><a class="dropdown-item" href="view-page.php?slug=<?= htmlspecialchars($p['slug']) ?>"><?= htmlspecialchars($p['title']) ?></a></li>
-                        <?php endforeach; ?>
+
+                        <li><h6 class="dropdown-header text-uppercase text-light-50 small">Page Management</h6></li>
+
+                        <li>
+                            <a class="dropdown-item" href="pages-list.php">
+                                <i class="bi bi-list-ul me-2"></i> Manage Pages
+                                <span class="badge bg-primary rounded-pill ms-2"><span id="pages-count"><?= number_format($totalPages) ?></span></span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="add-page.php">
+                                <i class="bi bi-plus-circle me-2"></i> Create New
+                            </a>
+                        </li>
+
                     </ul>
                 </li>
             </ul>
+
             <div class="navbar-text ms-auto">
                 <span class="badge bg-success rounded-pill db-status-badge">DB: <?= htmlspecialchars($status) ?></span>
             </div>

@@ -1,4 +1,5 @@
 <?php
+// front-end/edit-page.php
 declare(strict_types=1);
 require_once "config.php";
 global $pageRepo;
@@ -22,7 +23,7 @@ if (!$page) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'] ?? '';
-    $slug = $_POST['slug'] ?? $page['slug'];
+    $slug = str_replace(' ', '-', $_POST['slug'] ?? $page['slug']);
     $description = $_POST['description'] ?? '';
     $content = $_POST['content'] ?? '';
     $status = $_POST['status'] ?? 'active';
@@ -48,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="d-flex flex-column min-vh-100">
     <canvas id="neural-canvas"></canvas>
+    
     <?php include_once ("header.php"); ?>
 
     <main class="flex-grow-1 d-flex align-items-center py-5">
@@ -58,16 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div style="height: 6px;" class="w-100 rounded-top bg-warning shadow-sm"></div>
                         <div class="card-body p-4">
                             <h2 class="fw-light text-light mb-4 text-center">Edit Website Page</h2>
-                            
-                            <!-- Snippet Toolbar -->
-                            <div class="mb-3 d-flex flex-wrap gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-info" onclick="insertSnippet('h1')">H1</button>
-                                <button type="button" class="btn btn-sm btn-outline-info" onclick="insertSnippet('p')">P</button>
-                                <button type="button" class="btn btn-sm btn-outline-info" onclick="insertSnippet('table')">Table</button>
-                                <button type="button" class="btn btn-sm btn-outline-info" onclick="insertSnippet('image')">Img</button>
-                                <button type="button" class="btn btn-sm btn-outline-info" onclick="insertSnippet('video')">Video</button>
-                                <button type="button" class="btn btn-sm btn-outline-info" onclick="insertSnippet('container')">Box</button>
-                            </div>
+
+                            <?php include_once "snippet-toolbar.php"; ?>
 
                             <form method="post">
                                 <div class="mb-3">
@@ -113,6 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </main>
 
     <?php include_once ("footer.php"); ?>
+
     <script src="assets/js/root.js"></script>
     <script>
         const htmlBuffer = document.getElementById('htmlBuffer');
@@ -122,24 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             livePreview.innerHTML = htmlBuffer.value || '<div class="text-center opacity-50 py-5"><p>Awaiting Content Stream...</p></div>';
         });
 
-        function insertSnippet(type) {
-            let snippet = '';
-            switch(type) {
-                case 'h1': snippet = '<h1 class="display-4 text-info fw-bold">Heading</h1>\n'; break;
-                case 'p': snippet = '<p class="lead text-light">Your text content here...</p>\n'; break;
-                case 'table': snippet = '<table class="table table-dark table-striped mt-3">\n  <thead>\n    <tr><th>Header</th></tr>\n  </thead>\n  <tbody>\n    <tr><td>Data</td></tr>\n  </tbody>\n</table>\n'; break;
-                case 'image': snippet = '<img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80" class="img-fluid rounded shadow my-3" alt="Sample Image">\n'; break;
-                case 'video': snippet = '<div class="ratio ratio-16x9 my-3">\n  <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Video" allowfullscreen></iframe>\n</div>\n'; break;
-                case 'container': snippet = '<div class="card bg-dark border-secondary p-4 my-3">\n  <h3 class="text-info">Container Title</h3>\n  <p>Nested content goes here.</p>\n</div>\n'; break;
-            }
-            
-            const start = htmlBuffer.selectionStart;
-            const end = htmlBuffer.selectionEnd;
-            const text = htmlBuffer.value;
-            htmlBuffer.value = text.substring(0, start) + snippet + text.substring(end);
-            htmlBuffer.dispatchEvent(new Event('input'));
-            htmlBuffer.focus();
-        }
+        // Note: insertSnippet function is now loaded via snippet-toolbar.php
     </script>
 </body>
 </html>

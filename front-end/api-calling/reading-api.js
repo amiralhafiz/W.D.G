@@ -1,18 +1,15 @@
 /**
  * READING-API.JS
- * Secured Core Logic for System Logs and Members Directory
- * Version: 2.0 (Security Enhanced)
+ * Secured Core Logic for Logs, Members, and Web Pages
+ * Version: 2.9 (AJAX Toggle & Full Logic Integration)
  */
 
-// Global state for filtering
-let currentSearch = '';         // For Logs
-let currentMemberSearch = '';   // For Members
+let currentSearch = '';
+let currentMemberSearch = '';
+let currentPagesSearch = '';
+let universalModalInstance = null;
 
-/**
- * 0. SECURITY UTILITIES
- */
-
-// Prevents XSS by converting special characters to HTML entities
+// --- 0. UTILITIES ---
 function escapeHTML(str) {
     if (!str) return '';
     return String(str)
@@ -23,47 +20,56 @@ function escapeHTML(str) {
         .replace(/'/g, '&#039;');
 }
 
-// Basic input cleaning for search fields
 function sanitizeQuery(str) {
     return str.replace(/[<>"{}$]/g, '').trim();
 }
 
 /**
- * 1. SHARED DASHBOARD UTILITIES
+ * UNIVERSAL DESTRUCTION MODAL TRIGGER
  */
+function openDestructionModal(title, targetUrl, label = 'TARGET IDENTITY') {
+    const modalEl = document.getElementById('universalDeleteModal');
+    if (!modalEl) return;
+
+    if (document.body && modalEl.parentNode !== document.body) {
+        document.body.appendChild(modalEl);
+    }
+
+    document.getElementById('universal-modal-title').textContent = title;
+    document.getElementById('universal-modal-label').textContent = label;
+    document.getElementById('universal-btn-confirm').href = targetUrl;
+
+    if (!universalModalInstance) {
+        universalModalInstance = new bootstrap.Modal(modalEl);
+    }
+    universalModalInstance.show();
+}
+
+// --- 1. DASHBOARD STATS ---
 async function updateDashboardStats() {
     const endpoints = {
         'users-count': '../back-end/api/users.php?action=count',
-        'logs-count': '../back-end/api/loggers.php?action=count'
+        'logs-count': '../back-end/api/loggers.php?action=count',
+        'pages-count': '../back-end/api/pages.php?action=count'
     };
-
     for (const [id, url] of Object.entries(endpoints)) {
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('API_UNAVAILABLE');
-            const result = await response.json();
-
-            const element = document.getElementById(id);
-            if (element && result.status === 'success') {
-                // Securely set text without parsing HTML
-                element.textContent = result.count;
+            if (response.ok) {
+                const result = await response.json();
+                const el = document.getElementById(id);
+                if (el && result.status === 'success') el.textContent = result.count;
             }
-        } catch (error) {
-            const element = document.getElementById(id);
-            if (element) element.textContent = 'ERR';
-        }
+        } catch (e) {}
     }
 }
 
-/**
- * 2. SYSTEM LOGS LOGIC
- */
+// --- 2. SYSTEM LOGS LOGIC ---
 async function fetchLogs(search = '', page = 1) {
     currentSearch = sanitizeQuery(search);
     const tbody = document.getElementById('logs-table-body');
     if (!tbody) return;
-
-    tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5"><div class="spinner-border text-dark mb-2"></div><div class="text-dark mono small opacity-50">NEXT PAGE...</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5"><div class="spinner-border text-dark mb-2"></div><div class="text-dark mono small opacity-50">LOADING...</div></td></tr>`;
 
     try {
         const response = await fetch(`../back-end/api/loggers.php?action=list&search=${encodeURIComponent(currentSearch)}&page=${page}`);
@@ -72,18 +78,17 @@ async function fetchLogs(search = '', page = 1) {
             renderLogs(result.data);
             renderPagination(result.pagination, 'logs');
         }
-    } catch (error) {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5 mono"><i class="bi bi-exclamation-octagon d-block mb-2 fs-1 text-danger blink-red"></i><div class="text-danger fw-bold">CRITICAL: CONNECTION ERROR</div></td></tr>`;
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5 text-danger mono">CONNECTION ERROR</td></tr>`;
     }
 }
 
 function renderLogs(logs) {
     const tbody = document.getElementById('logs-table-body');
     if (!logs || logs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5 mono"><i class="bi bi-exclamation-octagon d-block mb-2 fs-1 text-danger blink-red"></i><div class="text-danger fw-bold">CRITICAL: NO LOGS MATCH</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5 text-danger mono">NO LOGS FOUND</td></tr>`;
         return;
     }
-
     tbody.innerHTML = logs.map((log, index) => `
         <tr class="log-row" style="animation-delay: ${index * 0.05}s">
             <td class="ps-4 mono small opacity-75 text-center">${escapeHTML(log.created_at)}</td>
@@ -92,26 +97,22 @@ function renderLogs(logs) {
         </tr>`).join('');
 }
 
-function getBadgeClass(activity) {
-    const act = String(activity).toLowerCase();
+function getBadgeClass(act) {
+    act = String(act).toLowerCase();
     if (act.includes('delete')) return 'bg-danger shadow-danger';
     if (act.includes('create')) return 'bg-success shadow-success';
     if (act.includes('update')) return 'bg-warning text-dark shadow-warning';
     return 'bg-secondary';
 }
 
-/**
- * 3. MEMBERS DIRECTORY LOGIC
- */
+// --- 3. MEMBERS DIRECTORY LOGIC ---
 async function fetchMembers(search = '', page = 1) {
     currentMemberSearch = sanitizeQuery(search);
-
     const tbody = document.getElementById('members-table-body');
     const mobileContainer = document.getElementById('members-mobile-view');
     if (!tbody && !mobileContainer) return;
 
-    const loader = `<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-dark mono small opacity-50 mb-2"></div><div class="text-dark mono small opacity-50">NEXT PAGE...</div></td></tr>`;
-    if (tbody) tbody.innerHTML = loader;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-dark mb-2"></div><div class="text-dark mono small opacity-50">LOADING...</div></td></tr>`;
 
     try {
         const response = await fetch(`../back-end/api/users.php?action=list&search=${encodeURIComponent(currentMemberSearch)}&page=${page}`);
@@ -121,31 +122,35 @@ async function fetchMembers(search = '', page = 1) {
             renderMembersMobile(result.data);
             renderPagination(result.pagination, 'members');
         }
-    } catch (error) {
-        if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">CRITICAL: REGISTRY OFFLINE</td></tr>`;
+    } catch (e) {
+        if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">REGISTRY OFFLINE</td></tr>`;
     }
 }
 
 function renderMembersTable(users) {
     const tbody = document.getElementById('members-table-body');
     if (!tbody) return;
-
     if (!users || users.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 mono"><i class="bi bi-exclamation-octagon d-block mb-2 fs-1 text-danger blink-red"></i><div class="text-danger fw-bold">CRITICAL: NO MEMBERS FOUND</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">NO MEMBERS FOUND</td></tr>`;
         return;
     }
-
     tbody.innerHTML = users.map((user, index) => {
-        const safeUser = escapeHTML(user.user) + ' - ' + escapeHTML(user.fullname);
+        const safeUser = escapeHTML(user.user);
+        const safeName = safeUser + ' - ' + escapeHTML(user.fullname || 'Unknown');
+        const deleteUrl = `delete.php?user=${encodeURIComponent(user.user)}`;
+
         return `
         <tr style="animation-delay: ${index * 0.05}s" class="log-row">
             <td class="ps-4 mono small opacity-50 text-center">${safeUser.substring(0, 8)}</td>
-            <td class="mono small opacity-75"><strong>${escapeHTML(user.fullname || 'Unknown')}</strong></td>
+            <td class="mono small opacity-75"><strong>${safeName}</strong></td>
             <td class="mono small opacity-75 text-center">${escapeHTML(user.phonenumber)}</td>
             <td class="mono small opacity-75 text-center">${escapeHTML(user.email)}</td>
             <td class="pe-4 text-center">
-                <a href="edit-member.php?user=${encodeURIComponent(user.user)}" class="btn btn-sm btn-outline-primary border-0 rounded-circle"><i class="bi bi-pencil-square"></i></a>
-                <a href="delete.php?user=${encodeURIComponent(user.user)}" class="btn btn-sm btn-outline-danger border-0 rounded-circle ms-2" onclick="return confirm('DESTROY RECORD: ${safeUser}?')"><i class="bi bi-trash"></i></a>
+                <a href="edit-member.php?user=${encodeURIComponent(user.user)}" class="btn btn-sm btn-outline-primary border-0"><i class="bi bi-pencil-square"></i></a>
+                <button type="button" class="btn btn-sm btn-outline-danger border-0 ms-2"
+                    onclick="openDestructionModal('${safeName}', '${deleteUrl}', 'USER IDENTITY')">
+                    <i class="bi bi-trash"></i>
+                </button>
             </td>
         </tr>`}).join('');
 }
@@ -153,22 +158,20 @@ function renderMembersTable(users) {
 function renderMembersMobile(users) {
     const container = document.getElementById('members-mobile-view');
     if (!container) return;
-
     if (!users || users.length === 0) {
-        container.innerHTML = `<div class="alert bg-black bg-opacity-25 border-danger border-opacity-25 mono text-center text-danger"><i class="bi bi-exclamation-octagon d-block mb-2 fs-1 text-danger blink-red"></i>CRITICAL: NO MEMBERS FOUND</div>`;
+        container.innerHTML = `<div class="alert bg-black bg-opacity-25 border-danger text-center text-danger">NO MEMBERS FOUND</div>`;
         return;
     }
-
     container.innerHTML = users.map((user, index) => {
-        const safeUser = escapeHTML(user.user) + ' - ' + escapeHTML(user.fullname);
+        const safeUser = escapeHTML(user.user);
+        const safeName = safeUser + ' - ' + escapeHTML(user.fullname || 'Unknown');
+        const deleteUrl = `delete.php?user=${encodeURIComponent(user.user)}`;
+
         return `
         <div class="card glass-card border-0 mb-3 log-row shadow-sm" style="animation-delay: ${index * 0.1}s">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h5 class="text-white mb-0">${escapeHTML(user.fullname || 'Unknown')}</h5>
-                        <span class="text-warning mono small opacity-50">#${safeUser.substring(0, 8)}</span>
-                    </div>
+                    <div><h5 class="text-white mb-0">${safeName}</h5><span class="text-warning mono small opacity-50">#${safeUser.substring(0, 8)}</span></div>
                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3">ACTIVE</span>
                 </div>
                 <div class="mb-3 text-light small mono">
@@ -177,123 +180,199 @@ function renderMembersMobile(users) {
                 </div>
                 <div class="d-flex gap-2">
                     <a href="edit-member.php?user=${encodeURIComponent(user.user)}" class="btn btn-primary flex-fill fw-bold rounded-3">EDIT</a>
-                    <a href="delete.php?user=${encodeURIComponent(user.user)}" class="btn btn-outline-danger flex-fill fw-bold rounded-3" onclick="return confirm('DESTROY RECORD: ${safeUser}?')">DELETE</a>
+                    <button type="button" class="btn btn-outline-danger flex-fill fw-bold rounded-3"
+                        onclick="openDestructionModal('${safeName}', '${deleteUrl}', 'USER IDENTITY')">DELETE</button>
                 </div>
             </div>
         </div>`}).join('');
 }
 
+// --- 4. WEB PAGES LOGIC ---
+async function fetchPages(search = '', page = 1) {
+    currentPagesSearch = sanitizeQuery(search);
+    const tbody = document.getElementById('pages-table-body');
+    const mobileContainer = document.getElementById('pages-mobile-view');
+    if (!tbody && !mobileContainer) return;
+
+    if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-info mb-2"></div><div class="text-info mono small opacity-50">SYNCING PAGES...</div></td></tr>`;
+
+    try {
+        const response = await fetch(`../back-end/api/pages.php?action=list&search=${encodeURIComponent(currentPagesSearch)}&page=${page}`);
+        const result = await response.json();
+        if (result.status === 'success') {
+            renderPagesTable(result.data);
+            renderPagesMobile(result.data);
+            renderPagination(result.pagination, 'pages');
+        }
+    } catch (e) {
+        if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">PAGES REGISTRY OFFLINE</td></tr>`;
+    }
+}
+
 /**
- * 4. UI HELPERS (Filtering & Resetting)
+ * AJAX Page Toggle (Stay on Page)
  */
+async function togglePageStatus(id, currentStatus) {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    try {
+        const response = await fetch(`../back-end/api/pages.php?action=toggle&id=${id}&status=${newStatus}`);
+        const result = await response.json();
+        if (result.status === 'success') {
+            // Refresh current view
+            fetchPages(currentPagesSearch, 1);
+        }
+    } catch (e) {
+        console.error("Toggle Error:", e);
+    }
+}
+
+function renderPagesTable(pages) {
+    const tbody = document.getElementById('pages-table-body');
+    if (!tbody) return;
+    if (!pages || pages.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">NO PAGES FOUND</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = pages.map((p, index) => {
+        const safeTitle = escapeHTML(p.title);
+        const statusClass = p.status === 'active' ? 'bg-success' : 'bg-danger';
+        const deleteUrl = `pages-list.php?action=delete&id=${p.id}`;
+
+        return `
+        <tr style="animation-delay: ${index * 0.05}s" class="log-row">
+            <td class="ps-4 mono small opacity-75"><strong>${safeTitle}</strong></td>
+            <td class="mono small opacity-75">/${escapeHTML(p.slug)}</td>
+            <td class="text-center">
+                <button onclick="togglePageStatus(${p.id}, '${p.status}')" class="badge rounded-pill border-0 ${statusClass} shadow-sm px-3 py-2 cursor-pointer">
+                    ${p.status.toUpperCase()}
+                </button>
+            </td>
+            <td class="text-center mono small opacity-75">${escapeHTML(p.created_at)}</td>
+            <td class="pe-4 text-center">
+                <a href="view-page.php?slug=${escapeHTML(p.slug)}" class="btn btn-sm btn-outline-dark border-0" title="View"><i class="bi bi-eye"></i></a>
+                <a href="edit-page.php?id=${p.id}" class="btn btn-sm btn-outline-primary border-0 ms-2" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                <button type="button" class="btn btn-sm btn-outline-danger border-0 ms-2"
+                    onclick="openDestructionModal('${safeTitle}', '${deleteUrl}', 'PAGE CONTENT')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>`}).join('');
+}
+
+function renderPagesMobile(pages) {
+    const container = document.getElementById('pages-mobile-view');
+    if (!container) return;
+    if (!pages || pages.length === 0) {
+        container.innerHTML = `<div class="alert bg-black bg-opacity-25 border-info text-center text-info mono">NO PAGES FOUND</div>`;
+        return;
+    }
+    container.innerHTML = pages.map((p, index) => {
+        const safeTitle = escapeHTML(p.title);
+        const statusClass = p.status === 'active' ? 'bg-success' : 'bg-danger';
+        const deleteUrl = `pages-list.php?action=delete&id=${p.id}`;
+
+        return `
+        <div class="card glass-card border-0 mb-3 log-row shadow-sm" style="animation-delay: ${index * 0.1}s">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div><h5 class="text-white mb-0">${safeTitle}</h5><span class="text-info mono small opacity-50">/${escapeHTML(p.slug)}</span></div>
+                    <button onclick="togglePageStatus(${p.id}, '${p.status}')" class="badge rounded-pill border-0 ${statusClass} px-3 py-2">
+                        ${p.status.toUpperCase()}
+                    </button>
+                </div>
+                <div class="mb-3 text-light small mono">
+                    <div class="opacity-75"><i class="bi bi-calendar3 me-2"></i>${escapeHTML(p.created_at)}</div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="view-page.php?slug=${escapeHTML(p.slug)}" class="btn btn-outline-light flex-fill fw-bold rounded-3">VIEW</a>
+                    <a href="edit-page.php?id=${p.id}" class="btn btn-primary flex-fill fw-bold rounded-3">EDIT</a>
+                    <button type="button" class="btn btn-outline-danger flex-fill fw-bold rounded-3"
+                        onclick="openDestructionModal('${safeTitle}', '${deleteUrl}', 'PAGE CONTENT')">DELETE</button>
+                </div>
+            </div>
+        </div>`}).join('');
+}
+
+// --- 5. SEARCH & PAGINATION HELPERS ---
 function handleKeyup(event, type) {
-    const inputId = type === 'logs' ? 'logSearch' : 'memberSearch';
-    const resetBtnId = type === 'logs' ? 'resetSearch' : 'resetMemberSearch';
-    const inputEl = document.getElementById(inputId);
+    const id = type === 'logs' ? 'logSearch' : (type === 'members' ? 'memberSearch' : 'pageSearch');
+    const btn = type === 'logs' ? 'resetSearch' : (type === 'members' ? 'resetMemberSearch' : 'resetPageSearch');
+    const inputEl = document.getElementById(id);
     if (!inputEl) return;
 
     const val = inputEl.value;
-    const resetBtn = document.getElementById(resetBtnId);
+    const el = document.getElementById(btn);
+    if(el) val.length > 0 ? el.classList.remove('d-none') : el.classList.add('d-none');
 
-    if (resetBtn) {
-        val.length > 0 ? resetBtn.classList.remove('d-none') : resetBtn.classList.add('d-none');
-    }
     if (event.key === 'Enter') {
-        type === 'logs' ? applyFilter() : applyMemberFilter();
+        if (type === 'logs') applyFilter();
+        else if (type === 'members') applyMemberFilter();
+        else applyPageFilter();
     }
 }
 
-function applyFilter() {
-    const input = document.getElementById('logSearch');
-    currentSearch = sanitizeQuery(input.value);
-    fetchLogs(currentSearch, 1);
-}
-
-function applyMemberFilter() {
-    const input = document.getElementById('memberSearch');
-    currentMemberSearch = sanitizeQuery(input.value);
-    fetchMembers(currentMemberSearch, 1);
-}
+function applyFilter() { fetchLogs(document.getElementById('logSearch').value, 1); }
+function applyMemberFilter() { fetchMembers(document.getElementById('memberSearch').value, 1); }
+function applyPageFilter() { fetchPages(document.getElementById('pageSearch').value, 1); }
 
 function resetFilter(type) {
     if (type === 'logs') {
         document.getElementById('logSearch').value = '';
-        currentSearch = '';
         document.getElementById('resetSearch')?.classList.add('d-none');
         fetchLogs('', 1);
-    } else {
+    }
+    else if (type === 'members') {
         document.getElementById('memberSearch').value = '';
-        currentMemberSearch = '';
         document.getElementById('resetMemberSearch')?.classList.add('d-none');
         fetchMembers('', 1);
     }
+    else {
+        document.getElementById('pageSearch').value = '';
+        document.getElementById('resetPageSearch')?.classList.add('d-none');
+        fetchPages('', 1);
+    }
 }
 
-/**
- * 5. UNIFIED PAGINATION
- */
-function renderPagination(pagination, type) {
-    const isLogs = type === 'logs';
-    const containerId = isLogs ? 'pagination-container' : 'member-pagination-container';
-    const container = document.getElementById(containerId);
+function renderPagination(pg, type) {
+    let containerId = '';
+    if (type === 'logs') containerId = 'pagination-container';
+    else if (type === 'members') containerId = 'member-pagination-container';
+    else if (type === 'pages') containerId = 'page-pagination-container';
 
-    if (!container || !pagination || pagination.total_pages <= 1) {
-        if (container) container.innerHTML = '';
+    const container = document.getElementById(containerId);
+    if (!container || !pg || pg.total_pages <= 1) {
+        if(container) container.innerHTML = '';
         return;
     }
 
-    const fetchFunc = isLogs ? 'fetchLogs' : 'fetchMembers';
-    const currentVar = isLogs ? currentSearch : currentMemberSearch;
-    const safeSearch = escapeHTML(currentVar).replace(/'/g, "\\'");
+    const func = type === 'logs' ? 'fetchLogs' : (type === 'members' ? 'fetchMembers' : 'fetchPages');
+    const search = type === 'logs' ? currentSearch : (type === 'members' ? currentMemberSearch : currentPagesSearch);
+    const safeS = escapeHTML(search).replace(/'/g, "\\'");
 
     let html = '<ul class="pagination justify-content-center">';
-
-    // Previous Button
-    html += `<li class="page-item ${pagination.current_page === 1 ? 'disabled' : ''}">
-                <button class="page-link glass-pagination" onclick="${fetchFunc}('${safeSearch}', ${pagination.current_page - 1})"><i class="bi bi-chevron-left"></i></button>
-             </li>`;
-
-    // Numeric Pages
-    for (let i = 1; i <= pagination.total_pages; i++) {
-        const active = i === pagination.current_page ? 'active' : '';
-        html += `<li class="page-item ${active}">
-                    <button class="page-link glass-pagination ${active}" onclick="${fetchFunc}('${safeSearch}', ${i})">${i}</button>
-                 </li>`;
+    html += `<li class="page-item ${pg.current_page === 1 ? 'disabled' : ''}"><button class="page-link glass-pagination" onclick="${func}('${safeS}', ${pg.current_page - 1})"><i class="bi bi-chevron-left"></i></button></li>`;
+    for (let i = 1; i <= pg.total_pages; i++) {
+        html += `<li class="page-item ${i === pg.current_page ? 'active' : ''}"><button class="page-link glass-pagination ${i === pg.current_page ? 'active' : ''}" onclick="${func}('${safeS}', ${i})">${i}</button></li>`;
     }
-
-    // Next Button
-    html += `<li class="page-item ${pagination.current_page === pagination.total_pages ? 'disabled' : ''}">
-                <button class="page-link glass-pagination" onclick="${fetchFunc}('${safeSearch}', ${pagination.current_page + 1})"><i class="bi bi-chevron-right"></i></button>
-             </li>`;
-
-    html += '</ul>';
+    html += `<li class="page-item ${pg.current_page === pg.total_pages ? 'disabled' : ''}"><button class="page-link glass-pagination" onclick="${func}('${safeS}', ${pg.current_page + 1})"><i class="bi bi-chevron-right"></i></button></li></ul>`;
     container.innerHTML = html;
 }
 
-/**
- * 6. INITIALIZATION
- */
+// --- 6. INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Generate a secure-ish session visual ID
-    const sessionElement = document.getElementById('session-id');
-    if (sessionElement) {
+    const sess = document.getElementById('session-id');
+    if (sess) {
         try {
-            const buffer = new Uint8Array(4);
-            window.crypto.getRandomValues(buffer);
-            sessionElement.textContent = Array.from(buffer)
-                .map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
-        } catch (e) {
-            sessionElement.textContent = "AUTH_ACTIVE";
-        }
+            const b = new Uint8Array(4);
+            window.crypto.getRandomValues(b);
+            sess.textContent = Array.from(b).map(x => x.toString(16).padStart(2,'0')).join('').toUpperCase();
+        } catch(e){ sess.textContent = "AUTH_ACTIVE"; }
     }
 
     updateDashboardStats();
     setInterval(updateDashboardStats, 1000);
 
-    if (document.getElementById('logs-table-body')) {
-        fetchLogs();
-    }
-    if (document.getElementById('members-table-body') || document.getElementById('members-mobile-view')) {
-        fetchMembers();
-    }
+    if (document.getElementById('logs-table-body')) fetchLogs();
+    if (document.getElementById('members-table-body')) fetchMembers();
+    if (document.getElementById('pages-table-body')) fetchPages();
 });

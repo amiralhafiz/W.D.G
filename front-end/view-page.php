@@ -25,6 +25,7 @@ if (!$page) {
 </head>
 <body class="d-flex flex-column min-vh-100">
     <canvas id="neural-canvas"></canvas>
+
     <?php include_once ("header.php"); ?>
 
     <main class="flex-grow-1 py-5">
@@ -34,7 +35,7 @@ if (!$page) {
     </main>
 
     <?php include_once ("footer.php"); ?>
+    
     <script src="assets/js/root.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

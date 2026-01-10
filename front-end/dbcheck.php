@@ -108,7 +108,5 @@ try {
     <script src="assets/js/root.js"></script>
     <script src="api-calling/health-api.js"></script>
     <script src="api-calling/dbcheck-api.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

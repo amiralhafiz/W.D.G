@@ -3,13 +3,6 @@ declare(strict_types=1);
 
 require_once "config.php";
 
-try {
-    $db = \App\Database::getInstance();
-    $status = "Connected";
-} catch (\Exception $e) {
-    $status = "Error";
-}
-
 $userCount = $userRepo->getUserCount();
 ?>
 <!DOCTYPE html>
@@ -25,23 +18,7 @@ $userCount = $userRepo->getUserCount();
 <body class="d-flex flex-column min-vh-100">
     <canvas id="neural-canvas"></canvas>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-transparent border-bottom border-secondary border-opacity-25 sticky-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-uppercase tracking-wider" href="index.php">
-                <i class="bi bi-cpu-fill me-2 text-info"></i>W.D.G
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="members.php">Members <span class="badge bg-primary rounded-pill"><span id="users-count">Loading...</span> Members Found</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="logs.php">Logs <span class="badge bg-warning text-dark rounded-pill"><span id="logs-count">Loading...</span> Logs Found</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="dbcheck.php">DB Health <span class="badge bg-success rounded-pill"><?= htmlspecialchars($status) ?></span></a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <?php include_once ("header.php"); ?>
 
     <main class="flex-grow-1 d-flex align-items-center py-5">
         <div class="container">
@@ -117,6 +94,5 @@ $userCount = $userRepo->getUserCount();
     <script src="api-calling/reading-api.js"></script>
     <script src="api-calling/members-api.js"></script>
     <script src="api-calling/add-member.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

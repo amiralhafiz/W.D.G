@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 require_once "config.php";
+// CLEAN: All Legacy PHP Action logic (toggle/delete) has been removed.
+// These are now handled by reading-api.js calling back-end/api/pages.php
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -24,6 +26,27 @@ require_once "config.php";
     <main class="flex-grow-1 pt-3 pb-5 animate-up">
         <div class="container">
 
+            <?php if (isset($_GET['msg']) && $_GET['msg'] == 'deleted'): ?>
+                <div class="alert glass-card border-0 border-start border-4 border-danger shadow-lg text-white d-flex align-items-center mb-4" role="alert">
+                    <i class="bi bi-trash3-fill fs-4 me-3 text-danger"></i>
+                    <div>
+                        <div class="fw-bold mono text-danger">SYSTEM NOTIFICATION</div>
+                        <div class="small opacity-75">User record has been permanently purged from the registry.</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['error']) && $_GET['error'] == 'self_delete'): ?>
+                <div class="alert glass-card border-0 border-start border-4 border-warning shadow-lg text-white d-flex align-items-center mb-4" role="alert">
+                    <i class="bi bi-shield-exclamation fs-4 me-3 text-warning"></i>
+                    <div>
+                        <div class="fw-bold mono text-warning">ACTION DENIED</div>
+                        <div class="small opacity-75">Protocol safeguards prevent self-deletion of active admin session.</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
             <div class="row mb-4 align-items-center">
                 <div class="col-md-5">
                     <h2 class="text-light fw-light mb-0">
@@ -39,8 +62,8 @@ require_once "config.php";
                                    id="memberSearch"
                                    class="form-control bg-transparent border-0 text-white shadow-none text-light"
                                    placeholder="SEARCH MEMBER..."
-                                   onkeyup="handleMemberKeyup(event)">
-                            <button type="button" id="resetMemberSearch" class="btn btn-transparent text-warning border-0 d-none" onclick="resetMemberFilter()">
+                                   onkeyup="handleKeyup(event, 'members')">
+                            <button type="button" id="resetMemberSearch" class="btn btn-transparent text-warning border-0 d-none" onclick="resetFilter('members')">
                                 <i class="bi bi-x-lg"></i>
                             </button>
                         </div>
@@ -76,13 +99,12 @@ require_once "config.php";
         </div>
     </main>
 
+    <?php include_once "components/universal-delete.php"; ?>
+
     <?php include_once ("footer.php"); ?>
 
     <script src="assets/js/root.js"></script>
     <script src="api-calling/reading-api.js"></script>
     <script src="api-calling/health-api.js"></script>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
