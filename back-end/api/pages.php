@@ -11,7 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../bootstrap.php';
 
-// Assuming $pageRepo is initialized in bootstrap.php similar to $userRepo
+// Ensure $pageRepo is available (it should be initialized in bootstrap.php)
+if (!isset($pageRepo)) {
+    throw new Exception("Page repository not initialized");
+}
+
 $action = $_GET['action'] ?? '';
 
 try {

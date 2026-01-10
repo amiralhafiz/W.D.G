@@ -34,8 +34,25 @@ class Database {
                 $user   = defined('DB_USER') ? DB_USER : 'root';
                 $pass   = defined('DB_PASS') ? DB_PASS : '';
 
-                $dsn = "mysql:host=$host;port=$port;dbname=$dbName;charset=utf8mb4";
-                self::$instance = new PDO($dsn, $user, $pass);
+                try {
+                    $dsn = "mysql:host=$host;port=$port;dbname=$dbName;charset=utf8mb4";
+                    self::$instance = new PDO($dsn, $user, $pass);
+                } catch (\PDOException $e) {
+                    // If MySQL fails and we're on Replit, try to use the PostgreSQL DB anyway
+                    if ($databaseUrl) {
+                        $parsedUrl = parse_url($databaseUrl);
+                        $host = $parsedUrl['host'] ?? '';
+                        $port = $parsedUrl['port'] ?? 5432;
+                        $dbName = ltrim($parsedUrl['path'] ?? '', '/');
+                        $user = $parsedUrl['user'] ?? '';
+                        $pass = $parsedUrl['pass'] ?? '';
+
+                        $dsn = "pgsql:host=$host;port=$port;dbname=$dbName";
+                        self::$instance = new PDO($dsn, $user, $pass);
+                    } else {
+                        throw $e;
+                    }
+                }
             }
 
             self::$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
