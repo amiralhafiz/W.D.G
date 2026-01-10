@@ -1,10 +1,25 @@
+# PHP
 .php_tmp
+vendor/
+composer.lock
 *.log
+*.cache
+
+# Environment
 .env
-.DS_Store
-Thumbs.db
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
 *.swp
 *.swo
 *~
-.idea/
-.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cache
+.cache/
