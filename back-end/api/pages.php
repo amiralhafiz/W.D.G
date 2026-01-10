@@ -50,11 +50,11 @@ try {
                 throw new Exception("Invalid JSON data");
             }
 
-            $status      = $data['status'] ?? 'draft';
-            $title       = $data['title'] ?? '';
-            $slug        = $data['slug'] ?? '';
-            $description = $data['description'] ?? null;
-            $content     = $data['content'] ?? null;
+            $status      = htmlspecialchars(strip_tags($data['status'] ?? 'draft'), ENT_QUOTES, 'UTF-8');
+            $title       = htmlspecialchars(strip_tags($data['title'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $slug        = preg_replace('/[^a-z0-9\-]/', '', strtolower($data['slug'] ?? ''));
+            $description = isset($data['description']) ? htmlspecialchars(strip_tags($data['description']), ENT_QUOTES, 'UTF-8') : null;
+            $content     = $data['content'] ?? null; // Allow HTML in content but normally you'd use a purifier
 
             if (!$title || !$slug) {
                 throw new Exception("Missing required fields: title and slug are required");
@@ -69,7 +69,7 @@ try {
 
         case 'get':
             $id = (int)($_GET['id'] ?? 0);
-            $slug = $_GET['slug'] ?? '';
+            $slug = preg_replace('/[^a-z0-9\-]/', '', strtolower($_GET['slug'] ?? ''));
 
             if ($id > 0) {
                 $pageData = $pageRepo->getPageById($id);
@@ -91,10 +91,10 @@ try {
             if (!$data) throw new Exception("Invalid JSON data");
 
             $id          = (int)($data['id'] ?? 0);
-            $status      = $data['status'] ?? '';
-            $title       = $data['title'] ?? '';
-            $slug        = $data['slug'] ?? '';
-            $description = $data['description'] ?? null;
+            $status      = htmlspecialchars(strip_tags($data['status'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $title       = htmlspecialchars(strip_tags($data['title'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $slug        = preg_replace('/[^a-z0-9\-]/', '', strtolower($data['slug'] ?? ''));
+            $description = isset($data['description']) ? htmlspecialchars(strip_tags($data['description']), ENT_QUOTES, 'UTF-8') : null;
             $content     = $data['content'] ?? null;
 
             if (!$id || !$title || !$slug) {
