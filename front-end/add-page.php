@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
 
-                <div class="col-lg-8">
+                <div class="col-lg-8 mb-5">
                     <div class="card glass-card shadow-2xl animate-up h-100">
                          <div style="height: 6px;" class="w-100 rounded-top bg-success shadow-sm"></div>
                          <div class="card-header bg-transparent border-bottom border-secondary border-opacity-25 py-3">
@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 case 'video': snippet = '<div class="ratio ratio-16x9 my-3">\n  <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Video" allowfullscreen></iframe>\n</div>\n'; break;
                 case 'container': snippet = '<div class="card bg-dark border-secondary p-4 my-3">\n  <h3 class="text-info">Container Title</h3>\n  <p>Nested content goes here.</p>\n</div>\n'; break;
             }
-            
+
             const start = htmlBuffer.selectionStart;
             const end = htmlBuffer.selectionEnd;
             const text = htmlBuffer.value;
