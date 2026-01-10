@@ -83,6 +83,7 @@ require_once "config.php";
                                 <tr>
                                     <th class="ps-4 border-0 text-center">USER</th>
                                     <th class="border-0 text-center">FULLNAME</th>
+                                    <th class="border-0 text-center">STATUS</th>
                                     <th class="border-0 text-center">CONTACT VOICE</th>
                                     <th class="border-0 text-center">EMAIL ACCESS POINT</th>
                                     <th class="pe-4 border-0 text-center">ACTIONS</th>
