@@ -1,7 +1,7 @@
 /**
  * READING-API.JS
  * Secured Core Logic for Logs, Members, and Web Pages
- * Version: 3.1 (Centralized Confirmation & Reload)
+ * Version: 3.2 (API-Driven Deletion)
  */
 
 let currentSearch = '';
@@ -186,6 +186,14 @@ async function fetchMembers(search = '', page = 1) {
     } catch (e) { if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger mono">REGISTRY OFFLINE</td></tr>`; }
 }
 
+async function deleteMember(user) {
+    try {
+        const response = await fetch(`../back-end/api/users.php?action=delete&user=${encodeURIComponent(user)}`);
+        const result = await response.json();
+        if (result.status === 'success') location.reload();
+    } catch (e) { console.error("Delete Error:", e); }
+}
+
 function renderMembersTable(users) {
     const tbody = document.getElementById('members-table-body');
     if (!tbody) return;
@@ -196,7 +204,6 @@ function renderMembersTable(users) {
     tbody.innerHTML = users.map((user, index) => {
         const safeUser = escapeHTML(user.user);
         const safeName = safeUser + ' - ' + escapeHTML(user.fullname || 'Unknown');
-        const deleteUrl = `delete.php?user=${encodeURIComponent(user.user)}`;
         const status = user.status || 'active';
         const statusClass = status === 'active' ? 'bg-success' : 'bg-danger';
         return `
@@ -213,7 +220,7 @@ function renderMembersTable(users) {
             <td class="pe-4 text-center">
                 <a href="edit-member.php?user=${encodeURIComponent(user.user)}" class="btn btn-sm btn-outline-primary border-0"><i class="bi bi-pencil-square"></i></a>
                 <button type="button" class="btn btn-sm btn-outline-danger border-0 ms-2"
-                    onclick="openDestructionModal('${safeName}', '${deleteUrl}', 'USER IDENTITY')">
+                    onclick="openDestructionModal('${safeName}', '#', 'USER IDENTITY', () => deleteMember('${user.user}'))">
                     <i class="bi bi-trash"></i>
                 </button>
             </td>
@@ -230,7 +237,6 @@ function renderMembersMobile(users) {
     container.innerHTML = users.map((user, index) => {
         const safeUser = escapeHTML(user.user);
         const safeName = safeUser + ' - ' + escapeHTML(user.fullname || 'Unknown');
-        const deleteUrl = `delete.php?user=${encodeURIComponent(user.user)}`;
         const status = user.status || 'active';
         const statusClass = status === 'active' ? 'bg-success' : 'bg-danger';
         return `
@@ -249,7 +255,7 @@ function renderMembersMobile(users) {
                 <div class="d-flex gap-2">
                     <a href="edit-member.php?user=${encodeURIComponent(user.user)}" class="btn btn-primary flex-fill fw-bold rounded-3">EDIT</a>
                     <button type="button" class="btn btn-outline-danger flex-fill fw-bold rounded-3"
-                        onclick="openDestructionModal('${safeName}', '${deleteUrl}', 'USER IDENTITY')">DELETE</button>
+                        onclick="openDestructionModal('${safeName}', '#', 'USER IDENTITY', () => deleteMember('${user.user}'))">DELETE</button>
                 </div>
             </div>
         </div>`}).join('');
@@ -286,6 +292,14 @@ async function togglePageStatus(id, currentStatus, event) {
     });
 }
 
+async function deletePage(id) {
+    try {
+        const response = await fetch(`../back-end/api/pages.php?action=delete&id=${id}`);
+        const result = await response.json();
+        if (result.status === 'success') location.reload();
+    } catch (e) { console.error("Delete Error:", e); }
+}
+
 async function toggleMemberStatus(user, currentStatus, event) {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     const row = event.target.closest('tr') || event.target.closest('.card-body');
@@ -309,7 +323,6 @@ function renderPagesTable(pages) {
     tbody.innerHTML = pages.map((p, index) => {
         const safeTitle = escapeHTML(p.title);
         const statusClass = p.status === 'active' ? 'bg-success' : 'bg-danger';
-        const deleteUrl = `pages-list.php?action=delete&id=${p.id}`;
         return `
         <tr style="animation-delay: ${index * 0.05}s" class="log-row">
             <td class="ps-4 mono small opacity-75"><strong>${safeTitle}</strong></td>
@@ -324,7 +337,7 @@ function renderPagesTable(pages) {
                 <a href="view-page.php?slug=${escapeHTML(p.slug)}" class="btn btn-sm btn-outline-dark border-0" title="View"><i class="bi bi-eye"></i></a>
                 <a href="edit-page.php?id=${p.id}" class="btn btn-sm btn-outline-primary border-0 ms-2" title="Edit"><i class="bi bi-pencil-square"></i></a>
                 <button type="button" class="btn btn-sm btn-outline-danger border-0 ms-2"
-                    onclick="openDestructionModal('${safeTitle}', '${deleteUrl}', 'PAGE CONTENT')">
+                    onclick="openDestructionModal('${safeTitle}', '#', 'PAGE CONTENT', () => deletePage(${p.id}))">
                     <i class="bi bi-trash"></i>
                 </button>
             </td>
@@ -341,7 +354,6 @@ function renderPagesMobile(pages) {
     container.innerHTML = pages.map((p, index) => {
         const safeTitle = escapeHTML(p.title);
         const statusClass = p.status === 'active' ? 'bg-success' : 'bg-danger';
-        const deleteUrl = `pages-list.php?action=delete&id=${p.id}`;
         return `
         <div class="card glass-card border-0 mb-3 log-row shadow-sm" style="animation-delay: ${index * 0.1}s">
             <div class="card-body p-4">
@@ -358,7 +370,7 @@ function renderPagesMobile(pages) {
                     <a href="view-page.php?slug=${escapeHTML(p.slug)}" class="btn btn-outline-light flex-fill fw-bold rounded-3">VIEW</a>
                     <a href="edit-page.php?id=${p.id}" class="btn btn-primary flex-fill fw-bold rounded-3">EDIT</a>
                     <button type="button" class="btn btn-outline-danger flex-fill fw-bold rounded-3"
-                        onclick="openDestructionModal('${safeTitle}', '${deleteUrl}', 'PAGE CONTENT')">DELETE</button>
+                        onclick="openDestructionModal('${safeTitle}', '#', 'PAGE CONTENT', () => deletePage(${p.id}))">DELETE</button>
                 </div>
             </div>
         </div>`}).join('');
