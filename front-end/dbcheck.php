@@ -48,13 +48,9 @@ try {
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <?php if ($status === 'Connected'): ?>
-                        <li class="nav-item"><span class="nav-link text-success">SYSTEM ONLINE</span></li>
-                    <?php else: ?>
-                        <li class="nav-item"><span class="nav-link text-danger">SYSTEM OFFLINE</span></li>
-                    <?php endif; ?>
+                    <li class="nav-item"><span class="nav-link db-status-text-nav">SYSTEM CHECKING...</span></li>
                     <li class="nav-item"><span class="nav-link"><span><i class="bi bi-clock me-1"></i> <?= date('h:i:s A') ?></span></li>
-                    <li class="nav-item"><span class="nav-link"><i class="bi bi-hdd-network me-1"></i> MYSQL PDO</span></li>
+                    <li class="nav-item"><span class="nav-link"><i class="bi bi-hdd-network me-1"></i> DB ACCESS</span></li>
                     <li class="nav-item"><span class="nav-link"><span><i class="bi bi-code-slash me-1"></i> PHP <?= PHP_VERSION ?></span></li>
                 </ul>
             </div>
@@ -67,15 +63,13 @@ try {
                 <div class="col-md-8 col-lg-5">
 
                     <div class="card glass-card shadow-lg border-0">
-                        <div style="height: 4px;" class="w-100 <?= $status === 'Connected' ? 'bg-success' : 'bg-danger' ?>"></div>
+                        <div style="height: 4px;" class="w-100 db-status-bar bg-secondary"></div>
 
                         <div class="card-body p-4 p-md-5 text-center">
                             <div class="mb-4">
-                                <?php if ($status === 'Connected'): ?>
-                                    <i class="bi bi-shield-check display-1 text-success"></i>
-                                <?php else: ?>
-                                    <i class="bi bi-shield-slash display-1 text-danger"></i>
-                                <?php endif; ?>
+                                <i class="bi bi-shield-check display-1 text-success db-status-icon-success d-none"></i>
+                                <i class="bi bi-shield-slash display-1 text-danger db-status-icon-error d-none"></i>
+                                <i class="bi bi-arrow-repeat display-1 text-info db-status-icon-loading"></i>
                             </div>
 
                             <h2 class="text-light fw-light mb-1">Database Health</h2>
@@ -83,26 +77,23 @@ try {
 
                             <div class="bg-black bg-opacity-50 rounded-4 p-4 mb-4 border border-white border-opacity-10">
                                 <div class="d-flex align-items-center justify-content-center mb-3">
-                                    <span class="status-pulse <?= $status === 'Connected' ? 'pulse-green' : 'pulse-red' ?>"></span>
-                                    <span class="fw-bold <?= $status === 'Connected' ? 'text-success' : 'text-danger' ?> mono">
-                                        <?= strtoupper($status) ?>
+                                    <span class="status-pulse db-status-pulse"></span>
+                                    <span class="fw-bold db-status-text mono">
+                                        CHECKING...
                                     </span>
                                 </div>
-                                <p class="small text-light text-opacity-75 mb-0 mono">
-                                    <?= htmlspecialchars($message) ?>
+                                <p class="small text-light text-opacity-75 mb-0 mono db-status-message">
+                                    Verifying secure link to database...
                                 </p>
                             </div>
 
                             <div class="d-grid gap-3">
-                                <?php if ($status === 'Connected'): ?>
-                                    <a href="index.php" class="btn btn-success btn-lg py-3 rounded-pill shadow">
-                                        ENTER NOW
-                                    </a>
-                                <?php else: ?>
-                                    <button onclick="window.location.reload();" class="btn btn-outline-danger btn-lg py-3 rounded-pill">
-                                        <i class="bi bi-arrow-clockwise me-2"></i> RETRY CONNECTION
-                                    </button>
-                                <?php endif; ?>
+                                <a href="index.php" class="btn btn-success btn-lg py-3 rounded-pill shadow db-enter-btn d-none">
+                                    ENTER NOW
+                                </a>
+                                <button onclick="window.location.reload();" class="btn btn-outline-danger btn-lg py-3 rounded-pill db-retry-btn d-none">
+                                    <i class="bi bi-arrow-clockwise me-2"></i> RETRY CONNECTION
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -115,6 +106,45 @@ try {
     <?php include_once ("footer.php"); ?>
 
     <script src="assets/js/root.js"></script>
+    <script src="api-calling/health-api.js"></script>
+    <script>
+        // Override the default health behavior for this page to show more detail
+        async function updateDetailedDbStatus() {
+            try {
+                const response = await fetch('/back-end/api/health.php');
+                const result = await response.json();
+                const status = result.db_status;
+                const message = result.status === 'success' 
+                    ? 'Successfully established encrypted connection to Database Node.' 
+                    : 'Protocol Failure: ' + (result.message || 'Unknown error');
+
+                document.querySelector('.db-status-text').textContent = status.toUpperCase();
+                document.querySelector('.db-status-message').textContent = message;
+                
+                const navStatus = document.querySelector('.db-status-text-nav');
+                navStatus.textContent = status === 'Connected' ? 'SYSTEM ONLINE' : 'SYSTEM OFFLINE';
+                navStatus.className = 'nav-link ' + (status === 'Connected' ? 'text-success' : 'text-danger');
+
+                const bar = document.querySelector('.db-status-bar');
+                bar.className = 'w-100 db-status-bar ' + (status === 'Connected' ? 'bg-success' : 'bg-danger');
+
+                const pulse = document.querySelector('.db-status-pulse');
+                pulse.className = 'status-pulse ' + (status === 'Connected' ? 'pulse-green' : 'pulse-red');
+
+                document.querySelector('.db-status-icon-loading').classList.add('d-none');
+                if (status === 'Connected') {
+                    document.querySelector('.db-status-icon-success').classList.remove('d-none');
+                    document.querySelector('.db-enter-btn').classList.remove('d-none');
+                } else {
+                    document.querySelector('.db-status-icon-error').classList.remove('d-none');
+                    document.querySelector('.db-retry-btn').classList.remove('d-none');
+                }
+            } catch (error) {
+                console.error('Health check failed', error);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', updateDetailedDbStatus);
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -3,15 +3,7 @@
 declare(strict_types=1);
 
 require_once "config.php";
-
-try {
-    // This will now throw an exception instead of redirecting (due to the fix above)
-    $db = \App\Database::getInstance();
-
-    $status = "Connected";
-} catch (\Exception $e) {
-    $status = "Error";
-} ?>
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,7 +30,7 @@ try {
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="members.php">Members <span class="badge bg-primary rounded-pill"><span id="users-count">Loading...</span> Members Found</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="logs.php">Logs <span class="badge bg-warning text-dark rounded-pill"><span id="logs-count">Loading...</span> Logs Found</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="dbcheck.php">DB Health <span class="badge bg-success rounded-pill"><?= htmlspecialchars($status) ?></span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="dbcheck.php">DB Health <span class="badge bg-success rounded-pill db-status-badge">Loading...</span></a></li>
                 </ul>
             </div>
         </div>
@@ -75,7 +67,7 @@ try {
                       <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80" class="d-block w-100" style="height: 60vh; object-fit: cover;" alt="Server">
                       <div class="carousel-caption d-none d-md-block">
                           <h2 class="display-4 fw-bold">Database Status</h2>
-                          <p class="lead text-uppercase">Health Check: <?= htmlspecialchars($status) ?></p>
+                          <p class="lead text-uppercase">Health Check: <span class="db-status-text">Loading...</span></p>
                       </div>
                   </div>
               </div>
@@ -95,6 +87,7 @@ try {
 
     <script src="assets/js/root.js"></script>
     <script src="api-calling/reading-api.js"></script>
+    <script src="api-calling/health-api.js"></script>
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

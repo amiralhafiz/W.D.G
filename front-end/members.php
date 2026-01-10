@@ -3,15 +3,7 @@
 declare(strict_types=1);
 
 require_once "config.php";
-
-try {
-    // This will now throw an exception instead of redirecting (due to the fix above)
-    $db = \App\Database::getInstance();
-
-    $status = "Connected";
-} catch (\Exception $e) {
-    $status = "Error";
-} ?>
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,7 +31,7 @@ try {
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link" href="index.php">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="logs.php">Logs <span class="badge bg-warning text-dark rounded-pill"><span id="logs-count">Loading...</span> Logs Found</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="dbcheck.php">DB Health <span class="badge bg-success rounded-pill"><?= htmlspecialchars($status) ?></span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="dbcheck.php">DB Health <span class="badge bg-success rounded-pill db-status-badge">Loading...</span></a></li>
                 </ul>
                 <span class="navbar-text">
                     <span class="badge bg-primary rounded-pill"><span id="users-count">Loading...</span> Members Found</span>
@@ -107,6 +99,7 @@ try {
 
     <script src="assets/js/root.js"></script>
     <script src="api-calling/reading-api.js"></script>
+    <script src="api-calling/health-api.js"></script>
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
