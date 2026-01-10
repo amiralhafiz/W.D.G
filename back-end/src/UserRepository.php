@@ -58,7 +58,7 @@ class UserRepository {
 
     public function createUser(string $user, string $fullname, string $phonenumber, string $email): bool {
         $u = $this->q('user');
-        $stmt = $this->db->prepare("INSERT INTO wdg_users ($u, fullname, phonenumber, email, date) VALUES (?, ?, ?, ?, NOW())");
+        $stmt = $this->db->prepare("INSERT INTO wdg_users ($u, fullname, phonenumber, email, date) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)");
         $success = $stmt->execute([$user, $fullname, $phonenumber, $email]);
 
         if ($success) {

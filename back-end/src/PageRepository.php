@@ -68,7 +68,7 @@ class PageRepository {
 
     public function createPage(string $status, string $title, string $slug, ?string $description, ?string $content): bool {
         $sql = "INSERT INTO wdg_pages (status, title, slug, description, content, created_at)
-                VALUES (?, ?, ?, ?, ?, NOW())";
+                VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
         $stmt = $this->db->prepare($sql);
         $success = $stmt->execute([$status, $title, $slug, $description, $content]);
