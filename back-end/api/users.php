@@ -11,6 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../bootstrap.php';
 
+global $userRepo;
+
 $action = $_GET['action'] ?? '';
 
 try {
