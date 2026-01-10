@@ -33,4 +33,7 @@ async function updateDetailedDbStatus() {
         console.error('Health check failed', error);
     }
 }
-document.addEventListener('DOMContentLoaded', updateDetailedDbStatus);
+document.addEventListener('DOMContentLoaded', () => {
+    updateDetailedDbStatus();
+    setInterval(updateDetailedDbStatus, 1000);
+});

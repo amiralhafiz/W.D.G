@@ -28,7 +28,7 @@ class Database {
                 self::$instance = new PDO($dsn, $user, $pass);
             } else {
                 // MySQL Fallback
-                $host   = defined('DB_HOST') ? DB_HOST : 'localhostx';
+                $host   = defined('DB_HOST') ? DB_HOST : 'localhost';
                 $port   = defined('DB_PORT') ? DB_PORT : 3306;
                 $dbName = defined('DB_NAME') ? DB_NAME : 'wdg_db';
                 $user   = defined('DB_USER') ? DB_USER : 'root';
