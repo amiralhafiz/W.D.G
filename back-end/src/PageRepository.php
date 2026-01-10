@@ -80,6 +80,12 @@ class PageRepository {
     }
 
     public function updatePage(int $id, string $status, string $title, string $slug, ?string $description, ?string $content): bool {
+        // Check if slug is already taken by another page
+        $existingPage = $this->getPageBySlug($slug);
+        if ($existingPage && (int)$existingPage['id'] !== $id) {
+            throw new \Exception("The slug '$slug' is already in use by another page.");
+        }
+
         $sql = "UPDATE wdg_pages
                 SET status = ?, title = ?, slug = ?, description = ?, content = ?
                 WHERE id = ?";

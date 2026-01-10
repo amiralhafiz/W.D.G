@@ -116,7 +116,6 @@ try {
             if (!$data) throw new Exception("Invalid JSON data");
 
             $id          = (int)($data['id'] ?? 0);
-            $status      = htmlspecialchars(strip_tags($data['status'] ?? 'draft'), ENT_QUOTES, 'UTF-8');
             $title       = htmlspecialchars(strip_tags($data['title'] ?? ''), ENT_QUOTES, 'UTF-8');
             $slug        = preg_replace('/[^a-z0-9\-]/', '', strtolower($data['slug'] ?? ''));
             $description = isset($data['description']) ? htmlspecialchars(strip_tags($data['description']), ENT_QUOTES, 'UTF-8') : null;
@@ -124,6 +123,17 @@ try {
 
             if (!$id || !$title || !$slug) {
                 throw new Exception("Missing required fields: id, title, and slug are required");
+            }
+
+            // Get existing status if not provided in the update request
+            $status = 'active'; // default fallback
+            if (isset($data['status']) && !empty($data['status'])) {
+                $status = htmlspecialchars(strip_tags($data['status']), ENT_QUOTES, 'UTF-8');
+            } else {
+                $existingPage = $pageRepo->getPageById($id);
+                if ($existingPage) {
+                    $status = $existingPage['status'];
+                }
             }
 
             if ($pageRepo->updatePage($id, $status, $title, $slug, $description, $content)) {

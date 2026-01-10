@@ -36,7 +36,13 @@ async function updatePageData(pageData) {
 }
 
 async function getPageData(id) {
-    return await apiRequest(`${PAGES_API_URL}?action=get&id=${id}`);
+    const response = await apiRequest(`${PAGES_API_URL}?action=get&id=${id}`);
+    // Extract data from the success wrapper if present
+    if (response && response.status === 'success' && response.data) {
+        return response;
+    }
+    // Handle the case where the API might return data directly or wrapped differently
+    return response;
 }
 
 async function getPageBySlug(slug) {

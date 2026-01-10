@@ -32,13 +32,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('description').value = page.description || '';
             document.getElementById('content').value = page.content || '';
 
-            // Ensure status is included in form or passed
-            const statusInput = document.createElement('input');
-            statusInput.type = 'hidden';
-            statusInput.name = 'status';
-            statusInput.value = page.status || 'draft';
-            editForm.appendChild(statusInput);
-
             // Hide loader and reveal form
             loader.classList.add('d-none');
             editForm.style.display = 'block';
@@ -72,23 +65,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
 
-        // Ensure ID is explicitly included
-        data.id = id;
-
         const submitBtn = e.target.querySelector('button[type="submit"]');
         const originalBtnHtml = submitBtn.innerHTML;
 
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> SYNCING_CHANGES...';
 
-        const updateResult = await updatePageData(data);
+        try {
+            const updateResult = await updatePageData(data);
 
-        if (updateResult.status === 'success') {
-            window.location.href = 'index.php?updated=1';
-        } else {
+            if (updateResult.status === 'success') {
+                window.location.href = 'index.php?updated=1';
+            } else {
+                throw new Error(updateResult.message || 'Unknown update error');
+            }
+        } catch (error) {
             alertBox.innerHTML = `
                 <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-danger mono small">
-                    <i class="bi bi-shield-exclamation me-2"></i> UPDATE_FAILED: ${updateResult.message}
+                    <i class="bi bi-shield-exclamation me-2"></i> UPDATE_FAILED: ${error.message}
                 </div>`;
 
             submitBtn.disabled = false;
