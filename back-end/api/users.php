@@ -115,6 +115,18 @@ try {
             }
             break;
 
+        case 'toggle':
+            $user = htmlspecialchars(strip_tags($_GET['user'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $status = htmlspecialchars(strip_tags($_GET['status'] ?? ''), ENT_QUOTES, 'UTF-8');
+            if (!$user || !$status) throw new Exception("User ID and Status required for toggle");
+
+            if ($userRepo->toggleUserStatus($user, $status)) {
+                echo json_encode(['status' => 'success', 'message' => 'User status updated']);
+            } else {
+                throw new Exception("Failed to toggle user status");
+            }
+            break;
+
         default:
             http_response_code(400);
             echo json_encode(['status' => 'error', 'message' => 'Invalid action']);

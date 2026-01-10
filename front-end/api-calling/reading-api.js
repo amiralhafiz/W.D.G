@@ -183,11 +183,18 @@ function renderMembersTable(users) {
         const safeUser = escapeHTML(user.user);
         const safeName = safeUser + ' - ' + escapeHTML(user.fullname || 'Unknown');
         const deleteUrl = `delete.php?user=${encodeURIComponent(user.user)}`;
+        const status = user.status || 'active';
+        const statusClass = status === 'active' ? 'bg-success' : 'bg-danger';
 
         return `
         <tr style="animation-delay: ${index * 0.05}s" class="log-row">
             <td class="ps-4 mono small opacity-50 text-center">${safeUser.substring(0, 8)}</td>
             <td class="mono small opacity-75"><strong>${safeName}</strong></td>
+            <td class="mono small opacity-75 text-center">
+                <button onclick="toggleMemberStatus('${user.user}', '${status}')" class="badge rounded-pill border-0 ${statusClass} shadow-sm px-3 py-2 cursor-pointer">
+                    ${status.toUpperCase()}
+                </button>
+            </td>
             <td class="mono small opacity-75 text-center">${escapeHTML(user.phonenumber)}</td>
             <td class="mono small opacity-75 text-center">${escapeHTML(user.email)}</td>
             <td class="pe-4 text-center">
@@ -211,13 +218,17 @@ function renderMembersMobile(users) {
         const safeUser = escapeHTML(user.user);
         const safeName = safeUser + ' - ' + escapeHTML(user.fullname || 'Unknown');
         const deleteUrl = `delete.php?user=${encodeURIComponent(user.user)}`;
+        const status = user.status || 'active';
+        const statusClass = status === 'active' ? 'bg-success' : 'bg-danger';
 
         return `
         <div class="card glass-card border-0 mb-3 log-row shadow-sm" style="animation-delay: ${index * 0.1}s">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div><h5 class="text-white mb-0">${safeName}</h5><span class="text-warning mono small opacity-50">#${safeUser.substring(0, 8)}</span></div>
-                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3">ACTIVE</span>
+                    <button onclick="toggleMemberStatus('${user.user}', '${status}')" class="badge rounded-pill border-0 ${statusClass} px-3 py-2">
+                        ${status.toUpperCase()}
+                    </button>
                 </div>
                 <div class="mb-3 text-light small mono">
                     <div><i class="bi bi-telephone me-2"></i>${escapeHTML(user.phonenumber)}</div>
@@ -268,6 +279,22 @@ async function togglePageStatus(id, currentStatus) {
         }
     } catch (e) {
         console.error("Toggle Error:", e);
+    }
+}
+
+/**
+ * AJAX Member Toggle (Stay on Page)
+ */
+async function toggleMemberStatus(user, currentStatus) {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    try {
+        const response = await fetch(`../back-end/api/users.php?action=toggle&user=${encodeURIComponent(user)}&status=${newStatus}`);
+        const result = await response.json();
+        if (result.status === 'success') {
+            fetchMembers(currentMemberSearch, 1);
+        }
+    } catch (e) {
+        console.error("Member Toggle Error:", e);
     }
 }
 

@@ -90,6 +90,17 @@ class UserRepository {
         return $success;
     }
 
+    public function toggleUserStatus(string $user, string $status): bool {
+        $u = $this->q('user');
+        $stmt = $this->db->prepare("UPDATE wdg_users SET status = ? WHERE $u = ?");
+        $success = $stmt->execute([$status, $user]);
+
+        if ($success) {
+            $this->logger->log("Toggle User Status", "Changed user ID: $user status to: $status");
+        }
+        return $success;
+    }
+
     public function getUserCount(): int {
         return (int) $this->db->query("SELECT COUNT(*) FROM wdg_users")->fetchColumn();
     }
