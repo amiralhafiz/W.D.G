@@ -3,23 +3,35 @@ declare(strict_types=1);
 require_once "config.php";
 global $pageRepo;
 
-try {
-    // This will now throw an exception instead of redirecting (due to the fix above)
-    $db = \App\Database::getInstance();
-    $status = "Connected";
-} catch (\Exception $e) {
-    $status = "Error";
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$page = null;
+if ($id > 0) {
+    $allPages = $pageRepo->getAllPages();
+    foreach ($allPages as $p) {
+        if ($p['id'] == $id) {
+            $page = $p;
+            break;
+        }
+    }
+}
+
+if (!$page) {
+    header("Location: pages-list.php");
+    exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'] ?? '';
-    $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
+    $slug = $_POST['slug'] ?? $page['slug'];
     $description = $_POST['description'] ?? '';
     $content = $_POST['content'] ?? '';
+    $status = $_POST['status'] ?? 'active';
 
     if ($title && $content) {
-        $pageRepo->createPage($title, $slug, $description, $content);
-        header("Location: index.php?page_created=1");
+        $db = \App\Database::getInstance();
+        $stmt = $db->prepare("UPDATE wdg_pages SET title = ?, slug = ?, description = ?, content = ?, status = ? WHERE id = ?");
+        $stmt->execute([$title, $slug, $description, $content, $status, $id]);
+        header("Location: pages-list.php?updated=1");
         exit;
     }
 }
@@ -29,14 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Add Page | W.D.G</title>x
+    <title>Edit Page | W.D.G</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/root.css">
 </head>
 <body class="d-flex flex-column min-vh-100">
     <canvas id="neural-canvas"></canvas>
-
     <?php include_once ("header.php"); ?>
 
     <main class="flex-grow-1 d-flex align-items-center py-5">
@@ -44,12 +55,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="row">
                 <div class="col-lg-4">
                     <div class="card glass-card shadow-2xl animate-up position-relative mb-4">
-                        <div style="height: 6px;" class="w-100 rounded-top bg-info shadow-sm"></div>
-                        <div class="card-body p-4 p-md-5">
-                            <div class="text-center mb-4">
-                                <h2 class="fw-light text-light mb-1">Create Website Page</h2>
-                            </div>
-
+                        <div style="height: 6px;" class="w-100 rounded-top bg-warning shadow-sm"></div>
+                        <div class="card-body p-4">
+                            <h2 class="fw-light text-light mb-4 text-center">Edit Website Page</h2>
+                            
                             <!-- Snippet Toolbar -->
                             <div class="mb-3 d-flex flex-wrap gap-2">
                                 <button type="button" class="btn btn-sm btn-outline-info" onclick="insertSnippet('h1')">H1</button>
@@ -60,26 +69,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <button type="button" class="btn btn-sm btn-outline-info" onclick="insertSnippet('container')">Box</button>
                             </div>
 
-                            <form method="post" class="mt-4">
-                                <div class="mb-4">
+                            <form method="post">
+                                <div class="mb-3">
                                     <label class="form-label text-info small mono mb-1">PAGE TITLE</label>
-                                    <input type="text" name="title" id="pageTitle" class="form-control bg-black bg-opacity-25 border-secondary text-white py-2 shadow-none" placeholder="e.g. Dashboard" required>
+                                    <input type="text" name="title" id="pageTitle" class="form-control bg-black bg-opacity-25 border-secondary text-white shadow-none" value="<?= htmlspecialchars($page['title']) ?>" required>
                                 </div>
-
-                                <div class="mb-4">
-                                    <label class="form-label text-info small mono mb-1">META DESCRIPTION</label>
-                                    <textarea name="description" class="form-control bg-black bg-opacity-25 border-secondary text-white py-2 shadow-none" rows="2" placeholder="SEO search parameters..."></textarea>
+                                <div class="mb-3">
+                                    <label class="form-label text-info small mono mb-1">SLUG</label>
+                                    <input type="text" name="slug" class="form-control bg-black bg-opacity-25 border-secondary text-white shadow-none" value="<?= htmlspecialchars($page['slug']) ?>" required>
                                 </div>
-
-                                <div class="mb-4">
+                                <div class="mb-3">
+                                    <label class="form-label text-info small mono mb-1">STATUS</label>
+                                    <select name="status" class="form-select bg-black bg-opacity-25 border-secondary text-white shadow-none">
+                                        <option value="active" <?= $page['status'] === 'active' ? 'selected' : '' ?>>Active</option>
+                                        <option value="inactive" <?= $page['status'] === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
                                     <label class="form-label text-info small mono mb-1">HTML BUFFER CONTENT</label>
-                                    <textarea name="content" id="htmlBuffer" class="form-control bg-black bg-opacity-25 border-secondary text-info py-2 shadow-none mono small" rows="12" placeholder="<div class='container'>...</div>" style="resize: none;" required></textarea>
+                                    <textarea name="content" id="htmlBuffer" class="form-control bg-black bg-opacity-25 border-secondary text-info shadow-none mono small" rows="12" style="resize: none;" required><?= htmlspecialchars($page['content']) ?></textarea>
                                 </div>
-
-                                <div class="d-grid mt-4">
-                                    <button type="submit" class="btn btn-info btn-lg py-3 rounded-pill fw-bold shadow-sm text-uppercase tracking-wider">
-                                        <i class="bi bi-cloud-arrow-up me-2"></i> Publish Page
-                                    </button>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-warning btn-lg py-3 rounded-pill fw-bold text-uppercase">Update Page</button>
                                 </div>
                             </form>
                         </div>
@@ -93,12 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                              <h5 class="text-success mb-0 mono small"><i class="bi bi-eye-fill me-2"></i> LIVE PULSE PREVIEW</h5>
                          </div>
                          <div class="card-body p-0 overflow-auto" style="max-height: 70vh;">
-                             <div id="livePreview" class="p-4 text-light">
-                                 <div class="text-center opacity-50 py-5">
-                                     <i class="bi bi-code-square display-1 d-block mb-3"></i>
-                                     <p>Awaiting Content Stream...</p>
-                                 </div>
-                             </div>
+                             <div id="livePreview" class="p-4 text-light"><?= $page['content'] ?></div>
                          </div>
                     </div>
                 </div>
@@ -107,20 +113,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </main>
 
     <?php include_once ("footer.php"); ?>
-
     <script src="assets/js/root.js"></script>
     <script>
         const htmlBuffer = document.getElementById('htmlBuffer');
         const livePreview = document.getElementById('livePreview');
-        const pageTitle = document.getElementById('pageTitle');
 
         htmlBuffer.addEventListener('input', () => {
-            const content = htmlBuffer.value;
-            if (content.trim()) {
-                livePreview.innerHTML = content;
-            } else {
-                livePreview.innerHTML = '<div class="text-center opacity-50 py-5"><i class="bi bi-code-square display-1 d-block mb-3"></i><p>Awaiting Content Stream...</p></div>';
-            }
+            livePreview.innerHTML = htmlBuffer.value || '<div class="text-center opacity-50 py-5"><p>Awaiting Content Stream...</p></div>';
         });
 
         function insertSnippet(type) {
@@ -142,8 +141,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             htmlBuffer.focus();
         }
     </script>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

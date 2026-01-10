@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once "config.php";
+global $pageRepo;
 
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
@@ -81,6 +82,7 @@ $allPages = $pageRepo->getAllPages();
                                             <td class="text-center mono small opacity-50"><?= htmlspecialchars($p['created_at']) ?></td>
                                             <td class="pe-4 text-end">
                                                 <a href="view-page.php?slug=<?= htmlspecialchars($p['slug']) ?>" class="btn btn-sm btn-outline-light border-0" title="View"><i class="bi bi-eye"></i></a>
+                                                <a href="edit-page.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-warning border-0 ms-2" title="Edit"><i class="bi bi-pencil-square"></i></a>
                                                 <a href="pages-list.php?action=delete&id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-danger border-0 ms-2" onclick="return confirm('DESTROY PAGE: <?= htmlspecialchars($p['title']) ?>?')" title="Delete"><i class="bi bi-trash"></i></a>
                                             </td>
                                         </tr>
