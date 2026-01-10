@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <main class="flex-grow-1 d-flex align-items-center py-5">
         <div class="container">
             <div class="row">
-                <div class="col-lg-6">
+                <div class="col-lg-4">
                     <div class="card glass-card shadow-2xl animate-up position-relative mb-4">
                         <div style="height: 6px;" class="w-100 rounded-top bg-info shadow-sm"></div>
                         <div class="card-body p-4 p-md-5">
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
 
-                <div class="col-lg-6">
+                <div class="col-lg-8">
                     <div class="card glass-card shadow-2xl animate-up h-100">
                          <div style="height: 6px;" class="w-100 rounded-top bg-success shadow-sm"></div>
                          <div class="card-header bg-transparent border-bottom border-secondary border-opacity-25 py-3">
