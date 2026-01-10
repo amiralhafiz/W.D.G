@@ -89,9 +89,7 @@ $userCount = $userRepo->getUserCount();
     </main>
 
     <?php include_once ("footer.php"); ?>
-
-    <script src="assets/js/root.js"></script>
-    <script src="api-calling/reading-api.js"></script>
+    
     <script src="api-calling/members-api.js"></script>
     <script src="api-calling/add-member.js"></script>
 </body>

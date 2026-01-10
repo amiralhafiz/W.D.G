@@ -104,9 +104,7 @@ try {
     </main>
 
     <?php include_once ("footer.php"); ?>
-
-    <script src="assets/js/root.js"></script>
-    <script src="api-calling/health-api.js"></script>
+    
     <script src="api-calling/dbcheck-api.js"></script>
 </body>
 </html>

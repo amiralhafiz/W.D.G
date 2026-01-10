@@ -45,6 +45,69 @@ function openDestructionModal(title, targetUrl, label = 'TARGET IDENTITY') {
     universalModalInstance.show();
 }
 
+// --- 1. NAVIGATION & STATS LOGIC (New Section) ---
+
+/**
+ * Fetches active pages and injects them into the Navbar
+ */
+async function fetchNavPages() {
+    const navContainer = document.getElementById('dynamic-nav-links');
+    if (!navContainer) return;
+
+    try {
+        const response = await fetch('../back-end/api/pages.php?action=nav');
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            // Preserving the static Dashboard link
+            let navHtml = '<li class="nav-item"><a class="nav-link" href="index.php">Dashboard</a></li>';
+
+            // Appending dynamic pages
+            result.data.forEach(page => {
+                navHtml += `
+                    <li class="nav-item">
+                        <a class="nav-link" href="view-page.php?slug=${escapeHTML(page.slug)}">
+                            ${escapeHTML(page.title)}
+                        </a>
+                    </li>`;
+            });
+            navContainer.innerHTML = navHtml;
+        }
+    } catch (e) {
+        console.error("Navigation load failed:", e);
+    }
+}
+
+/**
+ * Updates the badge counts in the Settings Dropdown and DB Status
+ */
+async function updateSystemStats() {
+    try {
+        // Fetch Counts (assuming you have a 'count' action in your APIs)
+        const [userRes, logRes, pageRes] = await Promise.all([
+            fetch('../back-end/api/users.php?action=count').then(r => r.json()),
+            fetch('../back-end/api/loggers.php?action=count').then(r => r.json()),
+            fetch('../back-end/api/pages.php?action=count').then(r => r.json())
+        ]);
+
+        if (userRes.status === 'success') document.getElementById('users-count').textContent = userRes.count;
+        if (logRes.status === 'success') document.getElementById('logs-count').textContent = logRes.count;
+        if (pageRes.status === 'success') document.getElementById('pages-count').textContent = pageRes.count;
+
+        // Update DB Status Badge
+        const statusBadge = document.querySelector('.db-status-badge');
+        if (statusBadge) {
+            statusBadge.classList.replace('bg-success', 'bg-info');
+            statusBadge.textContent = 'DB: CONNECTED';
+        }
+    } catch (e) {
+        const statusBadge = document.querySelector('.db-status-badge');
+        if (statusBadge) {
+            statusBadge.classList.replace('bg-success', 'bg-danger');
+            statusBadge.textContent = 'DB: OFFLINE';
+        }
+    }
+}
 
 // --- 2. SYSTEM LOGS LOGIC ---
 async function fetchLogs(search = '', page = 1) {
@@ -350,7 +413,13 @@ document.addEventListener('DOMContentLoaded', () => {
             sess.textContent = Array.from(b).map(x => x.toString(16).padStart(2,'0')).join('').toUpperCase();
         } catch(e){ sess.textContent = "AUTH_ACTIVE"; }
     }
+    
+    // Run Header Updates
+    fetchNavPages();
+    updateSystemStats();
 
+    // Run Page-Specific Logic
     if (document.getElementById('members-table-body')) fetchMembers();
     if (document.getElementById('pages-table-body')) fetchPages();
+    if (document.getElementById('logs-table-body')) fetchLogs();
 });

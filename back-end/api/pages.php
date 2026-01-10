@@ -119,6 +119,15 @@ try {
             }
             break;
 
+        case 'nav':
+            // Fetches only active pages for the header
+            $pages = $pageRepo->getActivePages(true);
+            echo json_encode([
+                'status' => 'success',
+                'data' => $pages
+            ]);
+            break;
+
         default:
             http_response_code(400);
             echo json_encode(['status' => 'error', 'message' => 'Invalid action']);

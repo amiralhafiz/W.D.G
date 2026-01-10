@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="d-flex flex-column min-vh-100">
     <canvas id="neural-canvas"></canvas>
-    
+
     <?php include_once ("header.php"); ?>
 
     <main class="flex-grow-1 d-flex align-items-center py-5">
@@ -107,8 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </main>
 
     <?php include_once ("footer.php"); ?>
-
-    <script src="assets/js/root.js"></script>
+    
     <script>
         const htmlBuffer = document.getElementById('htmlBuffer');
         const livePreview = document.getElementById('livePreview');

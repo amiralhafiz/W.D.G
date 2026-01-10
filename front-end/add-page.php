@@ -92,8 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </main>
 
     <?php include_once ("footer.php"); ?>
-
-    <script src="assets/js/root.js"></script>
+    
     <script>
         const htmlBuffer = document.getElementById('htmlBuffer');
         const livePreview = document.getElementById('livePreview');

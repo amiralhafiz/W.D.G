@@ -35,7 +35,5 @@ if (!$page) {
     </main>
 
     <?php include_once ("footer.php"); ?>
-    
-    <script src="assets/js/root.js"></script>
 </body>
 </html>

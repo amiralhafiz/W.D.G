@@ -68,9 +68,5 @@ require_once "config.php";
     </main>
 
     <?php include_once ("footer.php"); ?>
-
-    <script src="assets/js/root.js"></script>
-    <script src="api-calling/reading-api.js"></script>
-    <script src="api-calling/health-api.js"></script>
 </body>
 </html>
