@@ -15,53 +15,57 @@ require_once "config.php"; ?>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <canvas id="neural-canvas"></canvas>
+
     <?php include_once ("header.php"); ?>
 
     <main class="flex-grow-1 d-flex align-items-center py-5">
         <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-10 col-lg-8">
-                    <div class="card glass-card shadow-2xl animate-up">
-                        <div style="height: 6px;" class="w-100 rounded-top bg-primary shadow-sm"></div>
-                        <div class="card-body p-4 p-md-5">
-                            <h2 class="fw-light text-light text-center mb-4">Edit Data Node</h2>
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card glass-card shadow-2xl animate-up position-relative mb-4">
+                        <div style="height: 6px;" class="w-100 rounded-top bg-warning shadow-sm"></div>
+                        <div class="card-body p-4">
+                            <h2 class="fw-light text-light mb-4 text-center">Edit Website Page</h2>
 
-                            <div id="alert-container"></div>
+                            <?php include_once "snippet-toolbar.php"; ?>
 
-                            <form id="edit-page-form" style="display: none;">
-                                <input type="hidden" name="id" id="page-id">
-
-                                <div class="mb-4">
-                                    <label class="form-label text-primary small mono mb-1">PAGE TITLE</label>
-                                    <input type="text" name="title" id="title" class="form-control bg-black bg-opacity-25 border-secondary text-white py-2" required>
+                            <form method="post">
+                                <div class="mb-3">
+                                    <label class="form-label text-info small mono mb-1">PAGE TITLE</label>
+                                    <input type="text" name="title" id="pageTitle" class="form-control bg-black bg-opacity-25 border-secondary text-white shadow-none" value="<?= htmlspecialchars($page['title']) ?>" required>
                                 </div>
-
-                                <div class="mb-4">
-                                    <label class="form-label text-primary small mono mb-1">SLUG (URL PATH)</label>
-                                    <input type="text" name="slug" id="slug" class="form-control bg-black bg-opacity-25 border-secondary text-info py-2" required>
+                                <div class="mb-3">
+                                    <label class="form-label text-info small mono mb-1">SLUG</label>
+                                    <input type="text" name="slug" class="form-control bg-black bg-opacity-25 border-secondary text-white shadow-none" value="<?= htmlspecialchars($page['slug']) ?>" required>
                                 </div>
-
-                                <div class="mb-4">
-                                    <label class="form-label text-primary small mono mb-1">META DESCRIPTION</label>
-                                    <textarea name="description" id="description" class="form-control bg-black bg-opacity-25 border-secondary text-white py-2" rows="2"></textarea>
+                                <div class="mb-3">
+                                    <label class="form-label text-info small mono mb-1">STATUS</label>
+                                    <select name="status" class="form-select bg-black bg-opacity-25 border-secondary text-white shadow-none">
+                                        <option value="active" <?= $page['status'] === 'active' ? 'selected' : '' ?>>Active</option>
+                                        <option value="inactive" <?= $page['status'] === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+                                    </select>
                                 </div>
-
-                                <div class="mb-4">
-                                    <label class="form-label text-primary small mono mb-1">HTML CONTENT</label>
-                                    <textarea name="content" id="content" class="form-control bg-black bg-opacity-25 border-secondary text-info py-2 mono small" rows="12" required></textarea>
+                                <div class="mb-3">
+                                    <label class="form-label text-info small mono mb-1">HTML BUFFER CONTENT</label>
+                                    <textarea name="content" id="htmlBuffer" class="form-control bg-black bg-opacity-25 border-secondary text-info shadow-none mono small" rows="12" style="resize: none;" required><?= htmlspecialchars($page['content']) ?></textarea>
                                 </div>
-
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary btn-lg py-3 rounded-pill fw-bold">PUSH CHANGES</button>
-                                    <a href="index.php" class="btn btn-outline-secondary rounded-pill">CANCEL</a>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-warning btn-lg py-3 rounded-pill fw-bold text-uppercase">Update Page</button>
                                 </div>
                             </form>
-
-                            <div id="loading-indicator" class="text-center py-5">
-                                <div class="spinner-border text-primary" role="status"></div>
-                                <p class="mt-2 text-primary mono small">RETRIEVING_DATA...</p>
-                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="card glass-card shadow-2xl animate-up">
+                         <div style="height: 6px;" class="w-100 rounded-top bg-success shadow-sm"></div>
+                         <div class="card-header bg-transparent border-bottom border-secondary border-opacity-25 py-3">
+                             <h5 class="text-success mb-0 mono small"><i class="bi bi-eye-fill me-2"></i> LIVE PULSE PREVIEW</h5>
+                         </div>
+                         <div class="card-body p-0">
+                             <div id="livePreview" class="p-4 text-light"><?= $page['content'] ?></div>
+                         </div>
                     </div>
                 </div>
             </div>
@@ -69,7 +73,7 @@ require_once "config.php"; ?>
     </main>
 
     <?php include_once ("footer.php"); ?>
-    
+
     <script src="api-calling/pages-api.js"></script>
     <script src="api-calling/edit-page.js"></script>
 </body>
