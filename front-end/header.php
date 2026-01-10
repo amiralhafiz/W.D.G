@@ -1,7 +1,3 @@
-<?php
-// front-end/header.php
-// This is now purely structural. Dynamic data is handled by reading-api.js
-?>
 <nav class="navbar navbar-expand-lg navbar-dark bg-transparent border-bottom border-secondary border-opacity-25 sticky-top">
     <div class="container">
         <a class="navbar-brand fw-bold text-uppercase tracking-wider" href="index.php">
