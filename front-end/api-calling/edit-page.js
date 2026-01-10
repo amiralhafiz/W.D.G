@@ -32,6 +32,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('description').value = page.description || '';
             document.getElementById('content').value = page.content || '';
 
+            // Ensure status is included in form or passed
+            const statusInput = document.createElement('input');
+            statusInput.type = 'hidden';
+            statusInput.name = 'status';
+            statusInput.value = page.status || 'draft';
+            editForm.appendChild(statusInput);
+
             // Hide loader and reveal form
             loader.classList.add('d-none');
             editForm.style.display = 'block';

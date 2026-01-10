@@ -116,7 +116,7 @@ try {
             if (!$data) throw new Exception("Invalid JSON data");
 
             $id          = (int)($data['id'] ?? 0);
-            $status      = htmlspecialchars(strip_tags($data['status'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $status      = htmlspecialchars(strip_tags($data['status'] ?? 'draft'), ENT_QUOTES, 'UTF-8');
             $title       = htmlspecialchars(strip_tags($data['title'] ?? ''), ENT_QUOTES, 'UTF-8');
             $slug        = preg_replace('/[^a-z0-9\-]/', '', strtolower($data['slug'] ?? ''));
             $description = isset($data['description']) ? htmlspecialchars(strip_tags($data['description']), ENT_QUOTES, 'UTF-8') : null;
