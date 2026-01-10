@@ -2,27 +2,7 @@
 // /front-end/edit-page.php
 declare(strict_types=1);
 
-require_once "config.php";
-
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$page = null;
-
-if ($id > 0) {
-    try {
-        $db = \App\Database::getInstance();
-        $logger = new \App\Logger($db);
-        $pageRepo = new \App\PageRepository($db, $logger);
-        $page = $pageRepo->getPageById($id);
-    } catch (\Exception $e) {
-        // Handle gracefully below
-    }
-}
-
-if (!$page) {
-    header("Location: pages-list.php");
-    exit;
-}
-?>
+require_once "config.php"; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,7 +20,11 @@ if (!$page) {
     <main class="flex-grow-1 d-flex align-items-center py-5">
         <div class="container">
             <div id="alert-container"></div>
-            <div class="row">
+            <div id="loading-indicator" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-primary mono small">RETRIEVING_DATA...</p>
+            </div>
+            <div class="row" id="edit-content" style="display: none;">
                 <div class="col-lg-4">
                     <div class="card glass-card shadow-2xl animate-up position-relative mb-4">
                         <div style="height: 6px;" class="w-100 rounded-top bg-warning shadow-sm"></div>
@@ -50,26 +34,26 @@ if (!$page) {
                             <?php include_once "snippet-toolbar.php"; ?>
 
                             <form id="edit-page-form" class="mt-4">
-                                <input type="hidden" name="id" id="page-id" value="<?= (int)$page['id'] ?>">
+                                <input type="hidden" name="id" id="page-id">
                                 <div class="mb-3">
                                     <label class="form-label text-info small mono mb-1">PAGE TITLE</label>
-                                    <input type="text" name="title" id="pageTitle" class="form-control bg-black bg-opacity-25 border-secondary text-white shadow-none" value="<?= htmlspecialchars((string)($page['title'] ?? '')) ?>" required>
+                                    <input type="text" name="title" id="pageTitle" class="form-control bg-black bg-opacity-25 border-secondary text-white shadow-none" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-info small mono mb-1">SLUG</label>
-                                    <input type="text" name="slug" id="slug" class="form-control bg-black bg-opacity-25 border-secondary text-white shadow-none" value="<?= htmlspecialchars((string)($page['slug'] ?? '')) ?>" required>
+                                    <input type="text" name="slug" id="slug" class="form-control bg-black bg-opacity-25 border-secondary text-white shadow-none" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-info small mono mb-1">STATUS</label>
-                                    <select name="status" class="form-select bg-black bg-opacity-25 border-secondary text-white shadow-none">
-                                        <option value="active" <?= ($page['status'] ?? '') === 'active' ? 'selected' : '' ?>>Active</option>
-                                        <option value="draft" <?= ($page['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Draft</option>
-                                        <option value="inactive" <?= ($page['status'] ?? '') === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+                                    <select name="status" id="status" class="form-select bg-black bg-opacity-25 border-secondary text-white shadow-none">
+                                        <option value="active">Active</option>
+                                        <option value="draft">Draft</option>
+                                        <option value="inactive">Inactive</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-info small mono mb-1">HTML BUFFER CONTENT</label>
-                                    <textarea name="content" id="htmlBuffer" class="form-control bg-black bg-opacity-25 border-secondary text-info shadow-none mono small" rows="12" style="resize: none;" required><?= htmlspecialchars((string)($page['content'] ?? '')) ?></textarea>
+                                    <textarea name="content" id="htmlBuffer" class="form-control bg-black bg-opacity-25 border-secondary text-info shadow-none mono small" rows="12" style="resize: none;" required></textarea>
                                 </div>
                                 <div class="d-grid">
                                     <button type="submit" class="btn btn-warning btn-lg py-3 rounded-pill fw-bold text-uppercase">Update Page</button>
@@ -86,7 +70,7 @@ if (!$page) {
                              <h5 class="text-success mb-0 mono small"><i class="bi bi-eye-fill me-2"></i> LIVE PULSE PREVIEW</h5>
                          </div>
                          <div class="card-body p-0">
-                             <div id="livePreview" class="p-4 text-light"><?= (string)($page['content'] ?? '') ?></div>
+                             <div id="livePreview" class="p-4 text-light"></div>
                          </div>
                     </div>
                 </div>

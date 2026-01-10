@@ -2,10 +2,14 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
     const editForm = document.getElementById('edit-page-form');
-    // const loader = document.getElementById('loading-indicator'); // Loader no longer used with SSR
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const editContent = document.getElementById('edit-content');
     const alertBox = document.getElementById('alert-container');
+    
+    const pageIdInput = document.getElementById('page-id');
     const titleInput = document.getElementById('pageTitle');
     const slugInput = document.getElementById('slug');
+    const statusSelect = document.getElementById('status');
     const htmlBuffer = document.getElementById('htmlBuffer');
     const livePreview = document.getElementById('livePreview');
 
@@ -14,27 +18,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
 
-    // 1. Redirect if no ID provided in URL
     if (!id) {
-        window.location.href = 'index.php';
+        window.location.href = 'pages-list.php';
         return;
     }
 
-    // 2. Live Preview logic for edit mode
+    // 1. Fetch data from API
+    try {
+        const result = await getPageData(id);
+
+        if (result.status === 'success') {
+            const page = result.data;
+
+            // Populate form
+            pageIdInput.value = page.id;
+            titleInput.value = page.title || '';
+            slugInput.value = page.slug || '';
+            statusSelect.value = page.status || 'draft';
+            htmlBuffer.value = page.content || '';
+            livePreview.innerHTML = page.content || '';
+
+            // Show content
+            loadingIndicator.style.display = 'none';
+            editContent.style.display = 'flex';
+        } else {
+            throw new Error(result.message || "Page not found in registry.");
+        }
+    } catch (error) {
+        loadingIndicator.style.display = 'none';
+        alertBox.innerHTML = `
+            <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-danger mono small">
+                <i class="bi bi-exclamation-octagon me-2"></i> DATA_RETRIEVAL_ERROR: ${error.message}
+                <div class="mt-3">
+                    <a href="pages-list.php" class="btn btn-sm btn-danger rounded-pill px-3">Return to Registry</a>
+                </div>
+            </div>`;
+    }
+
+    // 2. Live Preview logic
     if (htmlBuffer && livePreview) {
         htmlBuffer.addEventListener('input', () => {
             livePreview.innerHTML = htmlBuffer.value;
         });
     }
 
-    // 3. Optional: Auto-slug generation logic
-    titleInput.addEventListener('input', () => {
-        const generatedSlug = titleInput.value.toLowerCase().trim().replace(/[^a-z0-9\-]/g, '-').replace(/-+/g, '-');
-        // Only update slug if it was empty or manually requested? 
-        // For now, let's keep it manual or simple
-    });
-
-    // 4. Handle Update Submission
+    // 3. Handle Update Submission
     editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
