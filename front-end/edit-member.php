@@ -3,43 +3,15 @@ declare(strict_types=1);
 
 require_once "config.php";
 
-$totalUsers = $userRepo->getUserCount();
-$totalLogs = $logger->getLogCount();
-
 try {
-    // This will now throw an exception instead of redirecting (due to the fix above)
     $db = \App\Database::getInstance();
-
     $status = "Connected";
 } catch (\Exception $e) {
     $status = "Error";
 }
 
-// Default to empty string '' instead of 0
 $user = (string)($_GET['user'] ?? '');
-
-// Check if user string is empty
-if (empty($user) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: members.php");
-    exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
-    $user = (string)$_POST['user'];
-    $fullname = trim($_POST['fullname'] ?? '');
-    $phone = trim($_POST['phonenumber'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-
-    // Just check if $user exists (is not empty)
-    if ($user && $fullname && $phone && $email) {
-        $userRepo->updateUser($user, $fullname, $phone, $email);
-        header("Location: members.php");
-        exit;
-    }
-}
-
-$userGet = $userRepo->getUserById($user);
-if (!$userGet) {
+if (empty($user)) {
     header("Location: members.php");
     exit;
 }
@@ -59,7 +31,7 @@ if (!$userGet) {
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-transparent border-bottom border-secondary border-opacity-25 sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold text-uppercase tracking-wider" href="#">
+            <a class="navbar-brand fw-bold text-uppercase tracking-wider" href="index.php">
                 <i class="bi bi-cpu-fill me-2 text-info"></i>W.D.G
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -102,19 +74,21 @@ if (!$userGet) {
 
                             <div class="text-center mb-4">
                                 <span class="badge bg-dark border border-warning border-opacity-25 text-warning fw-normal mono px-3 py-2">
-                                    <i class="bi bi-fingerprint me-1"></i> ID: <?= substr((string)$userGet['user'], 0, 8) ?>...
+                                    <i class="bi bi-fingerprint me-1"></i> ID: <span id="display-user-id">Loading...</span>
                                 </span>
                             </div>
 
-                            <form method="post" class="mt-2">
-                                <input type="hidden" name="user" value="<?= (string)$userGet['user'] ?>">
+                            <div id="alert-container"></div>
+
+                            <form id="edit-member-form" class="mt-2" style="display: none;">
+                                <input type="hidden" name="user" id="form-user-id" value="<?= htmlspecialchars($user) ?>">
 
                                 <div class="mb-4">
                                     <label class="form-label text-warning small mono mb-1">FULLNAME</label>
                                     <div class="input-group border border-white border-opacity-10 rounded-3 overflow-hidden bg-black bg-opacity-25">
                                         <span class="input-group-text bg-transparent border-0 text-light"><i class="bi bi-person"></i></span>
                                         <input type="text" class="form-control bg-transparent border-0 text-white py-2 shadow-none"
-                                               name="fullname" value="<?= htmlspecialchars($userGet['fullname']) ?>" required>
+                                               name="fullname" id="fullname" required>
                                     </div>
                                 </div>
 
@@ -123,7 +97,7 @@ if (!$userGet) {
                                     <div class="input-group border border-white border-opacity-10 rounded-3 overflow-hidden bg-black bg-opacity-25">
                                         <span class="input-group-text bg-transparent border-0 text-light"><i class="bi bi-telephone"></i></span>
                                         <input type="text" class="form-control bg-transparent border-0 text-white py-2 shadow-none"
-                                               name="phonenumber" value="<?= htmlspecialchars($userGet['phonenumber']) ?>" required>
+                                               name="phonenumber" id="phonenumber" required>
                                     </div>
                                 </div>
 
@@ -132,23 +106,28 @@ if (!$userGet) {
                                     <div class="input-group border border-white border-opacity-10 rounded-3 overflow-hidden bg-black bg-opacity-25">
                                         <span class="input-group-text bg-transparent border-0 text-light"><i class="bi bi-envelope"></i></span>
                                         <input type="email" class="form-control bg-transparent border-0 text-white py-2 shadow-none"
-                                               name="email" value="<?= htmlspecialchars($userGet['email']) ?>" required>
+                                               name="email" id="email" required>
                                     </div>
                                 </div>
 
                                 <div class="d-grid mt-5">
-                                    <button type="submit" name="update" class="btn btn-warning btn-lg py-3 rounded-pill fw-bold shadow-sm text-uppercase tracking-wider">
+                                    <button type="submit" class="btn btn-warning btn-lg py-3 rounded-pill fw-bold shadow-sm text-uppercase tracking-wider">
                                         <i class="bi bi-save me-2"></i> Push Changes
                                     </button>
                                 </div>
                             </form>
+                            
+                            <div id="loading-indicator" class="text-center py-5">
+                                <div class="spinner-border text-warning" role="status"></div>
+                                <p class="mt-2 text-warning mono small">FETCHING_DATA...</p>
+                            </div>
                         </div>
                     </div>
 
                     <div class="mt-4 d-flex justify-content-between text-muted px-3 mono" style="font-size: 0.7rem;">
                         <span><i class="bi bi-pencil-fill me-1"></i> MODE: OVERWRITE</span>
                         <span><i class="bi bi-shield-lock me-1"></i> AUTH: LEVEL_01</span>
-                        <span><i class="bi bi-cpu me-1"></i> STACK: PHP_PDO</span>
+                        <span><i class="bi bi-cpu me-1"></i> STACK: REST_API</span>
                     </div>
 
                 </div>
@@ -160,8 +139,49 @@ if (!$userGet) {
 
     <script src="assets/js/root.js"></script>
     <script src="api-calling/reading-api.js"></script>
+    <script src="api-calling/members-api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userId = '<?= htmlspecialchars($user) ?>';
+            const result = await getMember(userId);
+            
+            if (result.status === 'success') {
+                document.getElementById('display-user-id').textContent = userId.substring(0, 8) + '...';
+                document.getElementById('fullname').value = result.data.fullname;
+                document.getElementById('phonenumber').value = result.data.phonenumber;
+                document.getElementById('email').value = result.data.email;
+                
+                document.getElementById('loading-indicator').style.display = 'none';
+                document.getElementById('edit-member-form').style.display = 'block';
+            } else {
+                window.location.href = 'members.php';
+            }
+        });
 
-    <!-- Bootstrap 5 JS -->
+        document.getElementById('edit-member-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Updating...';
+
+            const result = await updateMember(data);
+            
+            if (result.status === 'success') {
+                window.location.href = 'members.php';
+            } else {
+                document.getElementById('alert-container').innerHTML = `
+                    <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-danger animate-up mono small" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> ERROR: ${result.message}
+                    </div>
+                `;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-save me-2"></i> Push Changes';
+            }
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

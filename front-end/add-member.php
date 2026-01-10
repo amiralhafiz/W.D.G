@@ -3,41 +3,11 @@ declare(strict_types=1);
 
 require_once "config.php";
 
-$totalUsers = $userRepo->getUserCount();
-$totalLogs = $logger->getLogCount();
-
 try {
-    // This will now throw an exception instead of redirecting (due to the fix above)
     $db = \App\Database::getInstance();
-
     $status = "Connected";
 } catch (\Exception $e) {
     $status = "Error";
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['Submit'])) {
-    $fullname = trim($_POST['fullname'] ?? '');
-    $phone = trim($_POST['phonenumber'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-
-    if ($fullname && $phone && $email) {
-        // Generate a standard UUID v4 (e.g., 550e8400-e29b-41d4-a716-446655440000)
-        $user = sprintf(
-            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0x0fff) | 0x4000,
-            mt_rand(0, 0x3fff) | 0x8000,
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
-        );
-
-        // Pass the new $user to your repository
-        // Ensure your createUser function is updated to accept this 4th argument!
-        $userRepo->createUser($user, $fullname, $phone, $email);
-
-        header("Location: add-member.php?submitted=successfully");
-        exit;
-    }
 }
 
 $userCount = $userRepo->getUserCount();
@@ -57,7 +27,7 @@ $userCount = $userRepo->getUserCount();
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-transparent border-bottom border-secondary border-opacity-25 sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold text-uppercase tracking-wider" href="#">
+            <a class="navbar-brand fw-bold text-uppercase tracking-wider" href="index.php">
                 <i class="bi bi-cpu-fill me-2 text-info"></i>W.D.G
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -83,7 +53,7 @@ $userCount = $userRepo->getUserCount();
                         <a href="members.php"
                            class="position-absolute top-0 end-0 m-3 btn btn-danger d-flex align-items-center justify-content-center rounded-circle shadow-sm transition-all"
                            style="z-index: 10; width: 38px; height: 38px; padding: 0;"
-                           title="Cancel Edit">
+                           title="Cancel">
                             <i class="bi bi-x-lg" style="font-size: 1.2rem;"></i>
                         </a>
                         <div style="height: 6px;" class="w-100 rounded-top bg-info shadow-sm"></div>
@@ -97,13 +67,9 @@ $userCount = $userRepo->getUserCount();
                                 <p class="text-light small text-uppercase mb-0 mono" style="letter-spacing: 2px;">User Registration</p>
                             </div>
 
-                            <?php if (isset($_GET['submitted'])): ?>
-                                <div class="alert alert-success bg-success bg-opacity-10 border-success border-opacity-25 text-success animate-up mono small" role="alert">
-                                    <i class="bi bi-check-circle-fill me-2"></i> DATA_INFILTRATION_SUCCESSFUL
-                                </div>
-                            <?php endif; ?>
+                            <div id="alert-container"></div>
 
-                            <form method="post" class="mt-4">
+                            <form id="add-member-form" class="mt-4">
                                 <div class="mb-4">
                                     <label class="form-label text-info small mono mb-1">FULLNAME</label>
                                     <div class="input-group border border-white border-opacity-10 rounded-3 overflow-hidden bg-black bg-opacity-25">
@@ -129,7 +95,7 @@ $userCount = $userRepo->getUserCount();
                                 </div>
 
                                 <div class="d-grid mt-5">
-                                    <button type="submit" name="Submit" class="btn btn-info btn-lg py-3 rounded-pill fw-bold shadow-sm text-uppercase tracking-wider">
+                                    <button type="submit" class="btn btn-info btn-lg py-3 rounded-pill fw-bold shadow-sm text-uppercase tracking-wider">
                                         <i class="bi bi-plus-circle me-2"></i> Register Member
                                     </button>
                                 </div>
@@ -138,9 +104,9 @@ $userCount = $userRepo->getUserCount();
                     </div>
 
                     <div class="mt-4 d-flex justify-content-between text-muted px-3 mono" style="font-size: 0.7rem;">
-                        <span><i class="bi bi-shield-lock me-1"></i> SECURE_POST</span>
+                        <span><i class="bi bi-shield-lock me-1"></i> SECURE_API</span>
                         <span><i class="bi bi-database-up me-1"></i> UUID_V4_ENABLED</span>
-                        <span><i class="bi bi-hdd-stack me-1"></i> COUNT: <?= number_format($userCount) ?></span>
+                        <span><i class="bi bi-hdd-stack me-1"></i> COUNT: <span id="footer-user-count"><?= number_format($userCount) ?></span></span>
                     </div>
 
                 </div>
@@ -152,8 +118,40 @@ $userCount = $userRepo->getUserCount();
 
     <script src="assets/js/root.js"></script>
     <script src="api-calling/reading-api.js"></script>
+    <script src="api-calling/members-api.js"></script>
+    <script>
+        document.getElementById('add-member-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
 
-    <!-- Bootstrap 5 JS -->
+            const result = await addMember(data);
+            
+            if (result.status === 'success') {
+                document.getElementById('alert-container').innerHTML = `
+                    <div class="alert alert-success bg-success bg-opacity-10 border-success border-opacity-25 text-success animate-up mono small" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i> DATA_INFILTRATION_SUCCESSFUL
+                    </div>
+                `;
+                e.target.reset();
+                // Update counts
+                if (typeof updateCounts === 'function') updateCounts();
+            } else {
+                document.getElementById('alert-container').innerHTML = `
+                    <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-danger animate-up mono small" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> ERROR: ${result.message}
+                    </div>
+                `;
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i> Register Member';
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
