@@ -89,6 +89,12 @@ try {
                 http_response_code(404);
                 throw new Exception("Page not found");
             }
+            
+            // Ensure numeric values are integers for PHP templates that might use them
+            if (isset($pageData['id'])) {
+                $pageData['id'] = (int)$pageData['id'];
+            }
+            
             echo json_encode(['status' => 'success', 'data' => $pageData]);
             break;
 
