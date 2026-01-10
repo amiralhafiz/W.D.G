@@ -10,5 +10,5 @@ try {
     echo json_encode(['status' => 'success', 'db_status' => 'Connected']);
 } catch (\Exception $e) {
     http_response_code(500);
-    echo json_encode(['status' => 'error', 'db_status' => 'Error', 'message' => $e.getMessage()]);
+    echo json_encode(['status' => 'error', 'db_status' => 'Error', 'message' => $e->getMessage()]);
 }
