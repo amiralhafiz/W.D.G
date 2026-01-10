@@ -3,15 +3,17 @@
 global $userRepo, $logger, $pageRepo;
 $totalUsers = $userRepo->getUserCount();
 $totalLogs = $logger->getLogCount();
-$totalPages = $pageRepo->getTotalCount();
+$totalPages = $pageRepo->getPageCount();
+
+// 2. NEW: Fetch the pages for the navbar loop
+$activePages = $pageRepo->getActivePages(true);
+
 try {
     $db = \App\Database::getInstance();
     $status = "Connected";
 } catch (\Exception $e) {
     $status = "Error";
-}
-$activePages = $pageRepo->getAllPages(true);
-?>
+}?>
 <nav class="navbar navbar-expand-lg navbar-dark bg-transparent border-bottom border-secondary border-opacity-25 sticky-top">
     <div class="container">
         <a class="navbar-brand fw-bold text-uppercase tracking-wider" href="index.php">
