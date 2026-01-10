@@ -33,4 +33,7 @@ async function updateDbStatusUI() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', updateDbStatusUI);
+document.addEventListener('DOMContentLoaded', () => {
+    updateDbStatusUI();
+    setInterval(updateDbStatusUI, 1000);
+});
