@@ -97,7 +97,7 @@ async function updateSystemStats() {
         // Update DB Status Badge
         const statusBadge = document.querySelector('.db-status-badge');
         if (statusBadge) {
-            statusBadge.classList.replace('bg-success', 'bg-info');
+            statusBadge.classList.replace('bg-dark', 'bg-success');
             statusBadge.textContent = 'DB: CONNECTED';
         }
     } catch (e) {
@@ -413,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sess.textContent = Array.from(b).map(x => x.toString(16).padStart(2,'0')).join('').toUpperCase();
         } catch(e){ sess.textContent = "AUTH_ACTIVE"; }
     }
-    
+
     // Run Header Updates
     fetchNavPages();
     updateSystemStats();
