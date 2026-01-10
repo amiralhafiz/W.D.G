@@ -15,8 +15,13 @@ class PageRepository {
         $this->logger = $logger;
     }
 
-    public function getAllPages(): array {
-        return $this->db->query("SELECT * FROM wdg_pages ORDER BY created_at DESC")->fetchAll();
+    public function getAllPages(bool $onlyActive = false): array {
+        $sql = "SELECT * FROM wdg_pages";
+        if ($onlyActive) {
+            $sql .= " WHERE status = 'active'";
+        }
+        $sql .= " ORDER BY created_at DESC";
+        return $this->db->query($sql)->fetchAll();
     }
 
     public function getPageBySlug(string $slug): ?array {
