@@ -73,12 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="col-lg-8 mb-4">
-                    <div class="card glass-card shadow-2xl animate-up h-100">
+                    <div class="card glass-card shadow-2xl animate-up">
                          <div style="height: 6px;" class="w-100 rounded-top bg-success shadow-sm"></div>
                          <div class="card-header bg-transparent border-bottom border-secondary border-opacity-25 py-3">
                              <h5 class="text-success mb-0 mono small"><i class="bi bi-eye-fill me-2"></i> LIVE PULSE PREVIEW</h5>
                          </div>
-                         <div class="card-body p-0 overflow-auto" style="max-height: 70vh;">
+                         <div class="card-body p-0">
                              <div id="livePreview" class="p-4 text-light">
                                  <div class="text-center opacity-50 py-5">
                                      <i class="bi bi-code-square display-1 d-block mb-3"></i>
