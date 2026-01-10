@@ -1,0 +1,8 @@
+.mobile-view { display: none; }
+.desktop-view { display: block; }
+@media (max-width: 768px) {
+    .mobile-view { display: block; }
+    .desktop-view { display: none; }
+}
+.card-user { transition: transform 0.2s; }
+.card-user:hover { transform: translateY(-5px); }

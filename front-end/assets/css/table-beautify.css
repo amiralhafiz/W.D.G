@@ -1,0 +1,58 @@
+/* Staggered Row Animation */
+@keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(-15px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.log-row {
+    animation: fadeInRight 0.4s ease forwards;
+    opacity: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.custom-log-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03) !important;
+    transition: background 0.2s ease;
+}
+
+/* Badge Glows */
+.shadow-success { box-shadow: 0 0 10px rgba(25, 135, 84, 0.4); }
+.shadow-danger { box-shadow: 0 0 10px rgba(220, 53, 69, 0.4); }
+.shadow-warning { box-shadow: 0 0 10px rgba(255, 193, 7, 0.4); }
+
+/* Glass Pagination */
+.glass-pagination {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #0dcaf0 !important;
+    margin: 0 3px;
+    border-radius: 8px !important;
+}
+
+.glass-pagination.active {
+    background: #0dcaf0 !important;
+    color: #000 !important;
+    border-color: #0dcaf0 !important;
+}
+
+.glass-pagination:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Ensure the animation is defined and forced */
+@keyframes blinker-red {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.2; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.blink-red {
+    display: inline-block; /* Required for transform animations */
+    animation: blinker-red 1s ease-in-out infinite !important;
+    color: #ff4d4d !important; /* Brighter red for better visibility on dark bg */
+    filter: drop-shadow(0 0 8px rgba(255, 77, 77, 0.6));
+}
+
+.tracking-widest {
+    letter-spacing: 2px;
+}
