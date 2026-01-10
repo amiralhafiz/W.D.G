@@ -24,10 +24,19 @@ $activePages = $pageRepo->getAllPages(true);
                 <li class="nav-item"><a class="nav-link" href="index.php">Dashboard</a></li>
                 <li class="nav-item"><a class="nav-link" href="members.php">Members <span class="badge bg-primary rounded-pill"><span id="users-count"><?= number_format($totalUsers) ?></span></span></a></li>
                 <li class="nav-item"><a class="nav-link" href="logs.php">Logs <span class="badge bg-warning text-dark rounded-pill"><span id="logs-count"><?= number_format($totalLogs) ?></span></span></a></li>
-                <?php foreach ($activePages as $p): ?>
-                    <li class="nav-item"><a class="nav-link" href="view-page.php?slug=<?= htmlspecialchars($p['slug']) ?>"><?= htmlspecialchars($p['title']) ?></a></li>
-                <?php endforeach; ?>
-                <li class="nav-item"><a class="nav-link" href="add-page.php"><i class="bi bi-plus-circle"></i> Page</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Pages
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark bg-black bg-opacity-75 border-secondary" aria-labelledby="pagesDropdown">
+                        <li><a class="dropdown-item" href="pages-list.php"><i class="bi bi-list-ul me-2"></i> Manage Pages</a></li>
+                        <li><a class="dropdown-item" href="add-page.php"><i class="bi bi-plus-circle me-2"></i> Create New</a></li>
+                        <li><hr class="dropdown-divider border-secondary"></li>
+                        <?php foreach ($activePages as $p): ?>
+                            <li><a class="dropdown-item" href="view-page.php?slug=<?= htmlspecialchars($p['slug']) ?>"><?= htmlspecialchars($p['title']) ?></a></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </li>
             </ul>
             <div class="navbar-text ms-auto">
                 <span class="badge bg-success rounded-pill db-status-badge">DB: <?= htmlspecialchars($status) ?></span>

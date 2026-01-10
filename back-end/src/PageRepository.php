@@ -31,10 +31,28 @@ class PageRepository {
     }
 
     public function createPage(string $title, string $slug, string $description, string $content): bool {
-        $stmt = $this->db->prepare("INSERT INTO wdg_pages (title, slug, description, content) VALUES (?, ?, ?, ?)");
+        $stmt = $this->db->prepare("INSERT INTO wdg_pages (title, slug, description, content, status) VALUES (?, ?, ?, ?, 'active')");
         $success = $stmt->execute([$title, $slug, $description, $content]);
         if ($success) {
             $this->logger->log("Create Page", "Created page: $title ($slug)");
+        }
+        return $success;
+    }
+
+    public function updatePageStatus(int $id, string $status): bool {
+        $stmt = $this->db->prepare("UPDATE wdg_pages SET status = ? WHERE id = ?");
+        $success = $stmt->execute([$status, $id]);
+        if ($success) {
+            $this->logger->log("Update Page Status", "Updated page ID $id status to: $status");
+        }
+        return $success;
+    }
+
+    public function deletePage(int $id): bool {
+        $stmt = $this->db->prepare("DELETE FROM wdg_pages WHERE id = ?");
+        $success = $stmt->execute([$id]);
+        if ($success) {
+            $this->logger->log("Delete Page", "Deleted page ID $id");
         }
         return $success;
     }

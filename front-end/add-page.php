@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-
 require_once "config.php";
+global $pageRepo;
 
 try {
     // This will now throw an exception instead of redirecting (due to the fix above)
