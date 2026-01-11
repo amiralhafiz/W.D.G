@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const titleInput = document.getElementById('pageTitle');
     const slugInput = document.getElementById('slug');
     const statusSelect = document.getElementById('status');
+    const isMainCheck = document.getElementById('isMainCheck');
     const htmlBuffer = document.getElementById('htmlBuffer');
     const livePreview = document.getElementById('livePreview');
 
@@ -35,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             titleInput.value = page.title || '';
             slugInput.value = page.slug || '';
             statusSelect.value = page.status || 'draft';
+            isMainCheck.checked = !!page.is_main;
             htmlBuffer.value = page.content || '';
             livePreview.innerHTML = page.content || '';
 
@@ -68,6 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
+        data.is_main = isMainCheck.checked;
 
         const submitBtn = e.target.querySelector('button[type="submit"]');
         const originalBtnHtml = submitBtn.innerHTML;

@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Let's follow the user's literal words:
             const mainStatusHtml = isMain 
                 ? `<span class="badge bg-info shadow-success fw-bold">MAIN PAGE</span>` 
-                : `<button onclick="handleSetMain(${page.id})" class="btn btn-sm btn-outline-info opacity-50" ${isActive ? 'disabled' : ''}>SET AS MAIN</button>`;
+                : `<button onclick="handleSetMain(${page.id})" class="btn btn-sm btn-outline-info opacity-50" ${isActive ? '' : 'disabled'}>SET AS MAIN</button>`;
 
             tr.innerHTML = `
                 <td class="ps-4 fw-bold text-info">${page.title}</td>
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const mainStatusHtml = isMain 
                 ? `<span class="badge bg-info shadow-success fw-bold">MAIN PAGE</span>` 
-                : `<button onclick="handleSetMain(${page.id})" class="btn btn-sm btn-outline-info opacity-50" ${isActive ? 'disabled' : ''}>SET AS MAIN</button>`;
+                : `<button onclick="handleSetMain(${page.id})" class="btn btn-sm btn-outline-info opacity-50" ${isActive ? '' : 'disabled'}>SET AS MAIN</button>`;
 
             card.innerHTML = `
                 <div class="card-body">

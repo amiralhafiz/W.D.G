@@ -47,6 +47,13 @@ require_once "config.php"; ?>
                                     <textarea name="content" id="htmlBuffer" class="form-control bg-black bg-opacity-25 border-secondary text-info py-2 shadow-none mono small" rows="12" placeholder="<div class='container'>...</div>" style="resize: none;" required></textarea>
                                 </div>
 
+                                <div class="mb-4 d-flex align-items-center">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input bg-black bg-opacity-25 border-secondary shadow-none" type="checkbox" name="is_main" id="isMainCheck">
+                                        <label class="form-check-label text-info small mono ms-2" for="isMainCheck">SET AS MAIN PAGE</label>
+                                    </div>
+                                </div>
+
                                 <div class="d-grid mt-4">
                                     <button type="submit" class="btn btn-info btn-lg py-3 rounded-pill fw-bold shadow-sm text-uppercase tracking-wider">
                                         <i class="bi bi-cloud-arrow-up me-2"></i> Publish Page

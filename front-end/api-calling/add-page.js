@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
+        data.is_main = document.getElementById('isMainCheck').checked;
 
         // 3. Generate Slug (replacing the previous PHP logic)
         data.slug = data.title

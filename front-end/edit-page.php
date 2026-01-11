@@ -55,6 +55,13 @@ require_once "config.php"; ?>
                                     <label class="form-label text-info small mono mb-1">HTML BUFFER CONTENT</label>
                                     <textarea name="content" id="htmlBuffer" class="form-control bg-black bg-opacity-25 border-secondary text-info shadow-none mono small" rows="12" style="resize: none;" required></textarea>
                                 </div>
+                                <div class="mb-3 d-flex align-items-center">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input bg-black bg-opacity-25 border-secondary shadow-none" type="checkbox" name="is_main" id="isMainCheck">
+                                        <label class="form-check-label text-info small mono ms-2" for="isMainCheck">SET AS MAIN PAGE</label>
+                                    </div>
+                                </div>
+
                                 <div class="d-grid">
                                     <button type="submit" class="btn btn-warning btn-lg py-3 rounded-pill fw-bold text-uppercase">Update Page</button>
                                 </div>
