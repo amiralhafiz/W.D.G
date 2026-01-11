@@ -52,3 +52,7 @@ async function getPageBySlug(slug) {
 async function getNavPages() {
     return await apiRequest(`${PAGES_API_URL}?action=nav`);
 }
+
+async function getMainPage() {
+    return await apiRequest(`${PAGES_API_URL}?action=get_main`);
+}

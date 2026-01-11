@@ -11,18 +11,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Logic for when no slug is provided
     if (!slug) {
         try {
-            // Check if any active pages exist
-            const navResult = await getNavPages();
+            // Check if any active main page exists
+            const mainResult = await getMainPage();
             
-            if (navResult.status === 'success' && navResult.data && navResult.data.length > 0) {
-                // Pages exist, show welcome content instead of error
-                renderWelcome(container);
+            if (mainResult.status === 'success' && mainResult.data) {
+                const page = mainResult.data;
+                document.title = `${page.title} | W.D.G`;
+                const metaDesc = document.querySelector('meta[name="description"]');
+                if (metaDesc) metaDesc.content = page.description || "";
+                container.innerHTML = page.content;
             } else {
                 // No active pages found
                 renderError(container, "404: NULL SLUG EXCEPTION", "No page identifier was provided in the protocol. Kindly create new page or perform some checking.");
             }
         } catch (error) {
-            console.error('Nav check error:', error);
+            console.error('Main page check error:', error);
             renderError(container, "500: CONNECTION FAILURE", "Unable to establish a link with the back-end API.");
         }
         return;

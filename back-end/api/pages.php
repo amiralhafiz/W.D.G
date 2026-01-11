@@ -36,6 +36,13 @@ try {
             $limit = 10;
 
             $pages = $pageRepo->getPaginatedPages($search, $page, $limit);
+            
+            // Map numeric types
+            foreach ($pages as &$p) {
+                $p['id'] = (int)$p['id'];
+                $p['is_main'] = (bool)($p['is_main'] ?? false);
+            }
+
             $totalMatchingRows = $pageRepo->countSearchPages($search);
             $totalPages = ceil($totalMatchingRows / $limit);
 
@@ -60,17 +67,37 @@ try {
             $title       = htmlspecialchars(strip_tags($data['title'] ?? ''), ENT_QUOTES, 'UTF-8');
             $slug        = preg_replace('/[^a-z0-9\-]/', '', strtolower($data['slug'] ?? ''));
             $description = isset($data['description']) ? htmlspecialchars(strip_tags($data['description']), ENT_QUOTES, 'UTF-8') : null;
-            $content     = $data['content'] ?? null; // Allow HTML in content but normally you'd use a purifier
+            $content     = $data['content'] ?? null; 
+            $isMain      = (bool)($data['is_main'] ?? false);
 
             if (!$title || !$slug) {
                 throw new Exception("Missing required fields: title and slug are required");
             }
 
-            if ($pageRepo->createPage($status, $title, $slug, $description, $content)) {
+            if ($pageRepo->createPage($status, $title, $slug, $description, $content, $isMain)) {
                 echo json_encode(['status' => 'success', 'message' => 'Page created successfully']);
             } else {
                 throw new Exception("Failed to create page");
             }
+            break;
+
+        case 'get_main':
+            $pageData = $pageRepo->getMainPage();
+            if (!$pageData) {
+                // Try fallback to first active page if no explicit main page
+                $activePages = $pageRepo->getPaginatedPages('', 1, 1);
+                $pageData = $activePages[0] ?? null;
+            }
+
+            if (!$pageData) {
+                http_response_code(404);
+                throw new Exception("No active pages found");
+            }
+            
+            $pageData['id'] = (int)$pageData['id'];
+            $pageData['is_main'] = (bool)($pageData['is_main'] ?? false);
+            
+            echo json_encode(['status' => 'success', 'data' => $pageData]);
             break;
 
         case 'get':
@@ -90,15 +117,14 @@ try {
                 throw new Exception("Page not found");
             }
             
-            // Ensure numeric values are integers for PHP templates that might use them
             if (isset($pageData['id'])) {
                 $pageData['id'] = (int)$pageData['id'];
             }
+            $pageData['is_main'] = (bool)($pageData['is_main'] ?? false);
             
             echo json_encode(['status' => 'success', 'data' => $pageData]);
             break;
 
-        // Find case 'get' and update/add case 'get_by_slug'
         case 'get_by_slug':
             $slug = preg_replace('/[^a-z0-9\-]/', '', strtolower($_GET['slug'] ?? ''));
 
@@ -126,6 +152,7 @@ try {
             $slug        = preg_replace('/[^a-z0-9\-]/', '', strtolower($data['slug'] ?? ''));
             $description = isset($data['description']) ? htmlspecialchars(strip_tags($data['description']), ENT_QUOTES, 'UTF-8') : null;
             $content     = $data['content'] ?? null;
+            $isMain      = (bool)($data['is_main'] ?? false);
 
             if (!$id || !$title || !$slug) {
                 throw new Exception("Missing required fields: id, title, and slug are required");
@@ -142,7 +169,7 @@ try {
                 }
             }
 
-            if ($pageRepo->updatePage($id, $status, $title, $slug, $description, $content)) {
+            if ($pageRepo->updatePage($id, $status, $title, $slug, $description, $content, $isMain)) {
                 echo json_encode(['status' => 'success', 'message' => 'Page updated successfully']);
             } else {
                 throw new Exception("Failed to update page");
@@ -173,7 +200,6 @@ try {
             break;
 
         case 'nav':
-            // Fetches only active pages for the header
             $pages = $pageRepo->getActivePages(true);
             echo json_encode([
                 'status' => 'success',

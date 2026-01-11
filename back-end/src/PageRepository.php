@@ -66,12 +66,27 @@ class PageRepository {
         return $pageData ?: null;
     }
 
-    public function createPage(string $status, string $title, string $slug, ?string $description, ?string $content): bool {
-        $sql = "INSERT INTO wdg_pages (status, title, slug, description, content, created_at)
-                VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+    public function getMainPage(): ?array {
+        $stmt = $this->db->prepare("SELECT * FROM wdg_pages WHERE is_main = TRUE AND status = 'active' LIMIT 1");
+        $stmt->execute();
+        $pageData = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $pageData ?: null;
+    }
+
+    private function resetMainPage(): void {
+        $this->db->exec("UPDATE wdg_pages SET is_main = FALSE");
+    }
+
+    public function createPage(string $status, string $title, string $slug, ?string $description, ?string $content, bool $isMain = false): bool {
+        if ($isMain) {
+            $this->resetMainPage();
+        }
+
+        $sql = "INSERT INTO wdg_pages (status, title, slug, description, content, is_main, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
         $stmt = $this->db->prepare($sql);
-        $success = $stmt->execute([$status, $title, $slug, $description, $content]);
+        $success = $stmt->execute([$status, $title, $slug, $description, $content, $isMain ? 1 : 0]);
 
         if ($success) {
             $this->logger->log("Create Page", "Created page: $title (Slug: $slug)");
@@ -79,19 +94,23 @@ class PageRepository {
         return $success;
     }
 
-    public function updatePage(int $id, string $status, string $title, string $slug, ?string $description, ?string $content): bool {
+    public function updatePage(int $id, string $status, string $title, string $slug, ?string $description, ?string $content, bool $isMain = false): bool {
         // Check if slug is already taken by another page
         $existingPage = $this->getPageBySlug($slug);
         if ($existingPage && (int)$existingPage['id'] !== $id) {
             throw new \Exception("The slug '$slug' is already in use by another page.");
         }
 
+        if ($isMain) {
+            $this->resetMainPage();
+        }
+
         $sql = "UPDATE wdg_pages
-                SET status = ?, title = ?, slug = ?, description = ?, content = ?
+                SET status = ?, title = ?, slug = ?, description = ?, content = ?, is_main = ?
                 WHERE id = ?";
 
         $stmt = $this->db->prepare($sql);
-        $success = $stmt->execute([$status, $title, $slug, $description, $content, $id]);
+        $success = $stmt->execute([$status, $title, $slug, $description, $content, $isMain ? 1 : 0, $id]);
 
         if ($success) {
             $this->logger->log("Update Page", "Updated page ID: $id ($title)");
