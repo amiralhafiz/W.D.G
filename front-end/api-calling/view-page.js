@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!slug) {
         try {
             const mainResult = await getMainPage();
-            
+
             if (mainResult.status === 'success' && mainResult.data) {
                 const page = mainResult.data;
                 document.title = `${page.title} | W.D.G`;
@@ -53,29 +53,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderError(container, "500: CONNECTION FAILURE", "Unable to establish a link with the back-end API.");
     }
 });
-
-/**
- * Helper to render welcome message when pages exist but no slug is selected
- */
-function renderWelcome(target) {
-    target.innerHTML = `
-        <div class="text-center py-5 animate-up">
-            <div class="mb-4">
-                <i class="bi bi-cpu-fill display-1 text-info opacity-50"></i>
-            </div>
-            <h1 class="fw-light text-light mb-3">Welcome to W.D.G Dashboard</h1>
-            <p class="text-light mono opacity-75 mb-4">SYSTEM_READY // Awaiting Node Selection</p>
-            <div class="d-flex justify-content-center gap-3">
-                <a href="pages-list.php" class="btn btn-outline-info rounded-pill px-4">
-                    <i class="bi bi-list-ul me-2"></i>Manage Pages
-                </a>
-                <a href="add-page.php" class="btn btn-info rounded-pill px-4 fw-bold">
-                    <i class="bi bi-plus-circle me-2"></i>Create New
-                </a>
-            </div>
-        </div>
-    `;
-}
 
 /**
  * Helper to render styled error messages
