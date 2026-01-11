@@ -45,8 +45,8 @@ async function getPageData(id) {
     return response;
 }
 
-async function getPageBySlug(slug) {
-    return await apiRequest(`${PAGES_API_URL}?action=get_by_slug&slug=${slug}`);
+async function getPages(search = '', page = 1) {
+    return await apiRequest(`${PAGES_API_URL}?action=list&search=${encodeURIComponent(search)}&page=${page}`);
 }
 
 async function getNavPages() {
@@ -55,4 +55,20 @@ async function getNavPages() {
 
 async function getMainPage() {
     return await apiRequest(`${PAGES_API_URL}?action=get_main`);
+}
+
+async function getPageBySlug(slug) {
+    return await apiRequest(`${PAGES_API_URL}?action=get_by_slug&slug=${slug}`);
+}
+
+async function togglePageStatus(id, status) {
+    return await apiRequest(`${PAGES_API_URL}?action=toggle&id=${id}&status=${status}`);
+}
+
+async function setMainPage(id) {
+    return await apiRequest(`${PAGES_API_URL}?action=update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id, is_main: true })
+    });
 }

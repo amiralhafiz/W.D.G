@@ -81,5 +81,7 @@ require_once "config.php"; ?>
     <?php include_once "components/universal-delete.php"; ?>
 
     <?php include_once ("footer.php"); ?>
+    <script src="api-calling/pages-api.js"></script>
+    <script src="api-calling/pages-list.js"></script>
 </body>
 </html>
