@@ -151,26 +151,26 @@ try {
             if (!$data) throw new Exception("Invalid JSON data");
 
             $id          = (int)($data['id'] ?? 0);
-            $title       = htmlspecialchars(strip_tags($data['title'] ?? ''), ENT_QUOTES, 'UTF-8');
-            $slug        = preg_replace('/[^a-z0-9\-]/', '', strtolower($data['slug'] ?? ''));
+            $title       = isset($data['title']) ? htmlspecialchars(strip_tags($data['title']), ENT_QUOTES, 'UTF-8') : null;
+            $slug        = isset($data['slug']) ? preg_replace('/[^a-z0-9\-]/', '', strtolower($data['slug'])) : null;
             $description = isset($data['description']) ? htmlspecialchars(strip_tags($data['description']), ENT_QUOTES, 'UTF-8') : null;
             $content     = $data['content'] ?? null;
             $isMain      = (bool)($data['is_main'] ?? false);
 
-            if (!$id || !$title || !$slug) {
-                throw new Exception("Missing required fields: id, title, and slug are required");
+            if (!$id) {
+                throw new Exception("Missing required field: id");
             }
 
-            // Get existing status if not provided in the update request
-            $status = 'active'; // default fallback
-            if (isset($data['status']) && !empty($data['status'])) {
-                $status = htmlspecialchars(strip_tags($data['status']), ENT_QUOTES, 'UTF-8');
-            } else {
-                $existingPage = $pageRepo->getPageById($id);
-                if ($existingPage) {
-                    $status = $existingPage['status'];
-                }
+            // Get existing data
+            $existingPage = $pageRepo->getPageById($id);
+            if (!$existingPage) {
+                throw new Exception("Page not found");
             }
+
+            // Merge with existing data if fields are missing (for partial updates like 'set main')
+            $title = $title ?? $existingPage['title'];
+            $slug  = $slug ?? $existingPage['slug'];
+            $status = isset($data['status']) ? htmlspecialchars(strip_tags($data['status']), ENT_QUOTES, 'UTF-8') : $existingPage['status'];
 
             if ($pageRepo->updatePage($id, $status, $title, $slug, $description, $content, $isMain)) {
                 echo json_encode(['status' => 'success', 'message' => 'Page updated successfully']);

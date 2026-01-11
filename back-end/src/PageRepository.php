@@ -77,6 +77,18 @@ class PageRepository {
         $this->db->exec("UPDATE wdg_pages SET is_main = FALSE");
     }
 
+    public function setMainPage(int $id): bool {
+        // First verify the page exists and is active
+        $page = $this->getPageById($id);
+        if (!$page || $page['status'] !== 'active') {
+            return false;
+        }
+
+        $this->resetMainPage();
+        $stmt = $this->db->prepare("UPDATE wdg_pages SET is_main = TRUE WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
     public function createPage(string $status, string $title, string $slug, ?string $description, ?string $content, bool $isMain = false): bool {
         if ($isMain) {
             $this->resetMainPage();
