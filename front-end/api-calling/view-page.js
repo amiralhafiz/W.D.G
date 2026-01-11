@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Logic for when no slug is provided
     if (!slug) {
         try {
-            // Check if any active main page exists
             const mainResult = await getMainPage();
             
             if (mainResult.status === 'success' && mainResult.data) {
@@ -20,8 +19,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const metaDesc = document.querySelector('meta[name="description"]');
                 if (metaDesc) metaDesc.content = page.description || "";
                 container.innerHTML = page.content;
+            } else if (mainResult.error_code === 'NULL_SLUG') {
+                renderError(container, "404: NULL SLUG EXCEPTION", "No page identifier was provided in the protocol. Kindly create new page or perform some checking.");
+            } else if (mainResult.error_code === 'NO_MAIN') {
+                renderError(container, "404: NO MAIN PAGE", "Active pages exist, but none have been designated as the Main Page. Please configure a main page in the dashboard.");
             } else {
-                // No active pages found
                 renderError(container, "404: NULL SLUG EXCEPTION", "No page identifier was provided in the protocol. Kindly create new page or perform some checking.");
             }
         } catch (error) {

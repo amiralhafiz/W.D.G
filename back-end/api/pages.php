@@ -83,15 +83,18 @@ try {
 
         case 'get_main':
             $pageData = $pageRepo->getMainPage();
+            
             if (!$pageData) {
-                // Try fallback to first active page if no explicit main page
+                // Check if any active pages exist at all
                 $activePages = $pageRepo->getPaginatedPages('', 1, 1);
-                $pageData = $activePages[0] ?? null;
-            }
-
-            if (!$pageData) {
-                http_response_code(404);
-                throw new Exception("No active pages found");
+                if (empty($activePages)) {
+                    http_response_code(404);
+                    echo json_encode(['status' => 'error', 'error_code' => 'NULL_SLUG', 'message' => '404: NULL SLUG EXCEPTION']);
+                } else {
+                    http_response_code(404);
+                    echo json_encode(['status' => 'error', 'error_code' => 'NO_MAIN', 'message' => '404: NO MAIN PAGE SET']);
+                }
+                exit;
             }
             
             $pageData['id'] = (int)$pageData['id'];
