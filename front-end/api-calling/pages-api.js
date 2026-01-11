@@ -48,3 +48,7 @@ async function getPageData(id) {
 async function getPageBySlug(slug) {
     return await apiRequest(`${PAGES_API_URL}?action=get_by_slug&slug=${slug}`);
 }
+
+async function getNavPages() {
+    return await apiRequest(`${PAGES_API_URL}?action=nav`);
+}
