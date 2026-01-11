@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Allow setting main only if the page is active
             const mainStatusHtml = isMain
-                ? `<span class="badge bg-primary shadow-success fw-bold">MAIN PAGE</span>`
+                ? `<span class="badge bg-primary shadow-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>SELECTED MAIN</span>`
                 : `<button onclick="handleSetMain(${page.id})" class="btn btn-sm ${isActive ? 'btn-outline-primary' : 'btn-warning disabled'} opacity-75">SET AS MAIN</button>`;
 
             tr.innerHTML = `
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const isActive = page.status === 'active';
 
             const mainStatusHtml = isMain
-                ? `<span class="badge bg-info shadow-success fw-bold">MAIN PAGE</span>`
+                ? `<span class="badge bg-info shadow-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>SELECTED MAIN</span>`
                 : `<button onclick="handleSetMain(${page.id})" class="btn btn-sm ${isActive ? 'btn-outline-info' : 'btn-warning disabled'} opacity-75">SET AS MAIN</button>`;
 
             card.innerHTML = `
