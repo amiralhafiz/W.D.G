@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 2. Client-side Check: If no slug provided
     if (!slug) {
-        renderError(container, "404: NULL_SLUG_EXCEPTION", "No page identifier was provided in the protocol.");
+        renderError(container, "404: NULL SLUG EXCEPTION", "No page identifier was provided in the protocol. Kindly create new page or perform some checking.");
         return;
     }
 
@@ -28,11 +28,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 5. Inject Content
             container.innerHTML = result.data.content;
         } else {
-            renderError(container, "404: NODE_NOT_FOUND", "The requested data node does not exist on the network.");
+            renderError(container, "404: NODE NOT FOUND", "The requested data node does not exist on the network.");
         }
     } catch (error) {
         console.error('Fetch error:', error);
-        renderError(container, "500: CONNECTION_FAILURE", "Unable to establish a link with the back-end API.");
+        renderError(container, "500: CONNECTION FAILURE", "Unable to establish a link with the back-end API.");
     }
 });
 
@@ -44,8 +44,8 @@ function renderError(target, code, message) {
         <div class="text-center py-5 animate-up">
             <h1 class="display-1 fw-bold text-danger opacity-25">${code}</h1>
             <p class="text-light mono mb-4">${message}</p>
-            <a href="index.php" class="btn btn-outline-info rounded-pill px-4">
-                <i class="bi bi-house me-2"></i>Return to Hub
+            <a href="add-page.php" class="btn btn-outline-info rounded-pill px-4">
+                <i class="bi bi-file-earmark me-2"></i>Create page now
             </a>
         </div>
     `;

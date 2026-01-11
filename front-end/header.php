@@ -9,9 +9,7 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto" id="dynamic-nav-links">
-                <li class="nav-item"><a class="nav-link" href="index.php">Dashboard</a></li>
-                </ul>
+            <ul class="navbar-nav me-auto" id="dynamic-nav-links"></ul>
 
             <div class="d-flex align-items-center ms-auto">
                 <ul class="navbar-nav">
@@ -47,11 +45,12 @@
                             </li>
                         </ul>
                     </li>
+                    <li class="nav-item d-flex align-items-center ms-lg-3">
+                        <span class="badge bg-success rounded-pill db-status-badge" id="db-status">
+                            DB: CHECKING...
+                        </span>
+                    </li>
                 </ul>
-
-                <div class="navbar-text ms-3">
-                    <span class="badge bg-success rounded-pill db-status-badge">DB: CHECKING...</span>
-                </div>
             </div>
         </div>
     </div>

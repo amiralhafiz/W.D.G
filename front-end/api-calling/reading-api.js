@@ -56,7 +56,7 @@ function openDestructionModal(title, targetUrl, label = 'TARGET IDENTITY', callb
     // Inject Data
     titleEl.textContent = title;
     labelEl.textContent = label;
-    
+
     // Customize for Status Toggle
     if (callback && label.includes('STATUS')) {
         mainTitleEl.textContent = "Update Status?";
@@ -71,7 +71,7 @@ function openDestructionModal(title, targetUrl, label = 'TARGET IDENTITY', callb
     // Handle confirm action
     const newBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
-    
+
     if (callback) {
         newBtn.removeAttribute('href');
         newBtn.onclick = (e) => {
@@ -93,17 +93,29 @@ function openDestructionModal(title, targetUrl, label = 'TARGET IDENTITY', callb
 async function fetchNavPages() {
     const navContainer = document.getElementById('dynamic-nav-links');
     if (!navContainer) return;
+
     try {
         const response = await fetch('../back-end/api/pages.php?action=nav');
         const result = await response.json();
-        if (result.status === 'success') {
-            let navHtml = '<li class="nav-item"><a class="nav-link" href="index.php">Dashboard</a></li>';
+
+        if (result.status === 'success' && Array.isArray(result.data)) {
+            // Start with an empty string instead of the hardcoded Dashboard link
+            let navHtml = '';
+
             result.data.forEach(page => {
-                navHtml += `<li class="nav-item"><a class="nav-link" href="view-page.php?slug=${escapeHTML(page.slug)}">${escapeHTML(page.title)}</a></li>`;
+                navHtml += `
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.php?slug=${escapeHTML(page.slug)}">
+                            ${escapeHTML(page.title)}
+                        </a>
+                    </li>`;
             });
+
             navContainer.innerHTML = navHtml;
         }
-    } catch (e) { console.error("Navigation load failed:", e); }
+    } catch (e) {
+        console.error("Navigation load failed:", e);
+    }
 }
 
 async function updateSystemStats() {
@@ -135,7 +147,7 @@ async function fetchLogs(search = '', page = 1) {
     currentSearch = sanitizeQuery(search);
     const tbody = document.getElementById('logs-table-body');
     if (!tbody) return;
-    tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5"><div class="spinner-border text-dark mb-2"></div><div class="text-dark mono small opacity-50">LOADING...</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5"><div class="spinner-border text-dark mb-2"></div><div class="text-dark mono small opacity-50">NEXT PAGE...</div></td></tr>`;
     try {
         const response = await fetch(`../back-end/api/loggers.php?action=list&search=${encodeURIComponent(currentSearch)}&page=${page}`);
         const result = await response.json();
@@ -143,13 +155,13 @@ async function fetchLogs(search = '', page = 1) {
             renderLogs(result.data);
             renderPagination(result.pagination, 'logs');
         }
-    } catch (e) { tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5 text-danger mono">CONNECTION ERROR</td></tr>`; }
+    } catch (e) { tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5 mono"><i class="bi bi-exclamation-octagon d-block mb-2 fs-1 text-danger blink-red"></i><div class="text-danger fw-bold">CRITICAL: CONNECTION ERROR</div></td></tr>`; }
 }
 
 function renderLogs(logs) {
     const tbody = document.getElementById('logs-table-body');
     if (!logs || logs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5 text-danger mono">NO LOGS FOUND</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-5 mono"><i class="bi bi-exclamation-octagon d-block mb-2 fs-1 text-danger blink-red"></i><div class="text-danger fw-bold">CRITICAL: NO LOGS MATCH</div></td></tr>`;
         return;
     }
     tbody.innerHTML = logs.map((log, index) => `
@@ -174,7 +186,7 @@ async function fetchMembers(search = '', page = 1) {
     const tbody = document.getElementById('members-table-body');
     const mobileContainer = document.getElementById('members-mobile-view');
     if (!tbody && !mobileContainer) return;
-    if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-dark mb-2"></div><div class="text-dark mono small opacity-50">LOADING...</div></td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-dark mono small opacity-50 mb-2"></div><div class="text-dark mono small opacity-50">NEXT PAGE...</div></td></tr>`;
     try {
         const response = await fetch(`../back-end/api/users.php?action=list&search=${encodeURIComponent(currentMemberSearch)}&page=${page}`);
         const result = await response.json();
@@ -183,7 +195,7 @@ async function fetchMembers(search = '', page = 1) {
             renderMembersMobile(result.data);
             renderPagination(result.pagination, 'members');
         }
-    } catch (e) { if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger mono">REGISTRY OFFLINE</td></tr>`; }
+    } catch (e) { if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">CRITICAL: REGISTRY OFFLINE</td></tr>`; }
 }
 
 async function deleteMember(user) {
@@ -198,7 +210,7 @@ function renderMembersTable(users) {
     const tbody = document.getElementById('members-table-body');
     if (!tbody) return;
     if (!users || users.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger mono">NO MEMBERS FOUND</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 mono"><i class="bi bi-exclamation-octagon d-block mb-2 fs-1 text-danger blink-red"></i><div class="text-danger fw-bold">CRITICAL: NO MEMBERS FOUND</div></td></tr>`;
         return;
     }
     tbody.innerHTML = users.map((user, index) => {
@@ -231,7 +243,7 @@ function renderMembersMobile(users) {
     const container = document.getElementById('members-mobile-view');
     if (!container) return;
     if (!users || users.length === 0) {
-        container.innerHTML = `<div class="alert bg-black bg-opacity-25 border-danger text-center text-danger">NO MEMBERS FOUND</div>`;
+        container.innerHTML = `<div class="alert bg-black bg-opacity-25 border-danger border-opacity-25 mono text-center text-danger"><i class="bi bi-exclamation-octagon d-block mb-2 fs-1 text-danger blink-red"></i>CRITICAL: NO MEMBERS FOUND</div>`;
         return;
     }
     container.innerHTML = users.map((user, index) => {
@@ -267,7 +279,7 @@ async function fetchPages(search = '', page = 1) {
     const tbody = document.getElementById('pages-table-body');
     const mobileContainer = document.getElementById('pages-mobile-view');
     if (!tbody && !mobileContainer) return;
-    if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-info mb-2"></div><div class="text-info mono small opacity-50">SYNCING PAGES...</div></td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-dark mono small opacity-50 mb-2"></div><div class="text-dark mono small opacity-50">NEXT PAGE...</div></td></tr>`;
     try {
         const response = await fetch(`../back-end/api/pages.php?action=list&search=${encodeURIComponent(currentPagesSearch)}&page=${page}`);
         const result = await response.json();
@@ -276,7 +288,7 @@ async function fetchPages(search = '', page = 1) {
             renderPagesMobile(result.data);
             renderPagination(result.pagination, 'pages');
         }
-    } catch (e) { if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">PAGES REGISTRY OFFLINE</td></tr>`; }
+    } catch (e) { if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">CRITICAL: PAGES REGISTRY OFFLINE</td></tr>`; }
 }
 
 async function togglePageStatus(id, currentStatus, event) {
@@ -317,7 +329,7 @@ function renderPagesTable(pages) {
     const tbody = document.getElementById('pages-table-body');
     if (!tbody) return;
     if (!pages || pages.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger mono">NO PAGES FOUND</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 mono"><i class="bi bi-exclamation-octagon d-block mb-2 fs-1 text-danger blink-red"></i><div class="text-danger fw-bold">CRITICAL: NO PAGE FOUND</div></td></tr>`;
         return;
     }
     tbody.innerHTML = pages.map((p, index) => {
@@ -334,7 +346,7 @@ function renderPagesTable(pages) {
             </td>
             <td class="text-center mono small opacity-75">${escapeHTML(p.created_at)}</td>
             <td class="pe-4 text-center">
-                <a href="view-page.php?slug=${escapeHTML(p.slug)}" class="btn btn-sm btn-outline-dark border-0" title="View"><i class="bi bi-eye"></i></a>
+                <a href="index.php?slug=${escapeHTML(p.slug)}" class="btn btn-sm btn-outline-dark border-0" title="View"><i class="bi bi-eye"></i></a>
                 <a href="edit-page.php?id=${p.id}" class="btn btn-sm btn-outline-primary border-0 ms-2" title="Edit"><i class="bi bi-pencil-square"></i></a>
                 <button type="button" class="btn btn-sm btn-outline-danger border-0 ms-2"
                     onclick="openDestructionModal('${safeTitle}', '#', 'PAGE CONTENT', () => deletePage(${p.id}))">
@@ -348,7 +360,7 @@ function renderPagesMobile(pages) {
     const container = document.getElementById('pages-mobile-view');
     if (!container) return;
     if (!pages || pages.length === 0) {
-        container.innerHTML = `<div class="alert bg-black bg-opacity-25 border-info text-center text-info mono">NO PAGES FOUND</div>`;
+        container.innerHTML = `<div class="alert bg-black bg-opacity-25 border-danger border-opacity-25 mono text-center text-danger"><i class="bi bi-exclamation-octagon d-block mb-2 fs-1 text-danger blink-red"></i>CRITICAL: NO PAGE FOUND</div>`;
         return;
     }
     container.innerHTML = pages.map((p, index) => {
@@ -367,7 +379,7 @@ function renderPagesMobile(pages) {
                     <div class="opacity-75"><i class="bi bi-calendar3 me-2"></i>${escapeHTML(p.created_at)}</div>
                 </div>
                 <div class="d-flex gap-2">
-                    <a href="view-page.php?slug=${escapeHTML(p.slug)}" class="btn btn-outline-light flex-fill fw-bold rounded-3">VIEW</a>
+                    <a href="index.php?slug=${escapeHTML(p.slug)}" class="btn btn-outline-light flex-fill fw-bold rounded-3">VIEW</a>
                     <a href="edit-page.php?id=${p.id}" class="btn btn-primary flex-fill fw-bold rounded-3">EDIT</a>
                     <button type="button" class="btn btn-outline-danger flex-fill fw-bold rounded-3"
                         onclick="openDestructionModal('${safeTitle}', '#', 'PAGE CONTENT', () => deletePage(${p.id}))">DELETE</button>
@@ -391,6 +403,7 @@ function handleKeyup(event, type) {
         else applyPageFilter();
     }
 }
+
 function applyFilter() { fetchLogs(document.getElementById('logSearch').value, 1); }
 function applyMemberFilter() { fetchMembers(document.getElementById('memberSearch').value, 1); }
 function applyPageFilter() { fetchPages(document.getElementById('pageSearch').value, 1); }
@@ -399,6 +412,7 @@ function resetFilter(type) {
     else if (type === 'members') { document.getElementById('memberSearch').value = ''; document.getElementById('resetMemberSearch')?.classList.add('d-none'); fetchMembers('', 1); }
     else { document.getElementById('pageSearch').value = ''; document.getElementById('resetPageSearch')?.classList.add('d-none'); fetchPages('', 1); }
 }
+
 function renderPagination(pg, type) {
     let containerId = '';
     if (type === 'logs') containerId = 'pagination-container';
