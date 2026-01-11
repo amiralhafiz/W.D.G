@@ -67,14 +67,14 @@ class PageRepository {
     }
 
     public function getMainPage(): ?array {
-        $stmt = $this->db->prepare("SELECT * FROM wdg_pages WHERE is_main = TRUE AND status = 'active' LIMIT 1");
+        $stmt = $this->db->prepare("SELECT * FROM wdg_pages WHERE is_main = 1 AND status = 'active' LIMIT 1");
         $stmt->execute();
         $pageData = $stmt->fetch(PDO::FETCH_ASSOC);
         return $pageData ?: null;
     }
 
     private function resetMainPage(): void {
-        $this->db->exec("UPDATE wdg_pages SET is_main = FALSE");
+        $this->db->exec("UPDATE wdg_pages SET is_main = 0");
     }
 
     public function setMainPage(int $id): bool {
