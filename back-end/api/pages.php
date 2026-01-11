@@ -181,6 +181,10 @@ try {
 
         case 'delete':
             $id = (int)($_GET['id'] ?? 0);
+            if (!$id) {
+                $data = json_decode(file_get_contents("php://input"), true);
+                $id = (int)($data['id'] ?? 0);
+            }
             if (!$id) throw new Exception("Page ID required for deletion");
 
             if ($pageRepo->deletePage($id)) {

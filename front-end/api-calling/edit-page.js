@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             titleInput.value = page.title || '';
             slugInput.value = page.slug || '';
             statusSelect.value = page.status || 'draft';
-            isMainCheck.checked = !!page.is_main;
+            isMainCheck.checked = parseInt(page.is_main) === 1;
             htmlBuffer.value = page.content || '';
             livePreview.innerHTML = page.content || '';
 

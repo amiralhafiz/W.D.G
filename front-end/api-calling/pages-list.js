@@ -30,18 +30,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const tr = document.createElement('tr');
             tr.className = 'log-row';
             
-            const isMain = page.is_main;
+            const isMain = parseInt(page.is_main) === 1;
             const isActive = page.status === 'active';
             
-            // Logic: 
-            // if page active -> disable main page status (cannot be changed if already active?)
-            // user said: "if page status is active disable the main page status, else if page status inactive enable main page status to be choose for other page"
-            // Wait, usually we want to set ACTIVE pages as main. 
-            // User: "if page status is active disable the main page status" -> Maybe means if it's already active, we don't show the toggle?
-            // "else if page status inactive enable main page status to be choose for other page" -> If inactive, allow choosing?
-            // That sounds reversed. Let me re-read:
-            // "if page status is active disable the main page status" -> maybe they mean if it is ALREADY the main page and active?
-            // Let's follow the user's literal words:
+            // Allow setting main only if the page is active
             const mainStatusHtml = isMain 
                 ? `<span class="badge bg-info shadow-success fw-bold">MAIN PAGE</span>` 
                 : `<button onclick="handleSetMain(${page.id})" class="btn btn-sm btn-outline-info opacity-50" ${isActive ? '' : 'disabled'}>SET AS MAIN</button>`;
@@ -100,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const card = document.createElement('div');
             card.className = 'card glass-card border-0 mb-3 animate-up';
             
-            const isMain = page.is_main;
+            const isMain = parseInt(page.is_main) === 1;
             const isActive = page.status === 'active';
             
             const mainStatusHtml = isMain 
@@ -125,15 +117,66 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    window.confirmDelete = (id, title) => {
+        const modalElement = document.getElementById('universalDeleteModal');
+        let modal = bootstrap.Modal.getInstance(modalElement);
+        if (!modal) modal = new bootstrap.Modal(modalElement);
+        
+        // Reset modal to default state for delete
+        document.getElementById('modal-icon-container').innerHTML = '<i class="bi bi-trash3 text-danger" style="font-size: 4rem; opacity: 0.8;"></i>';
+        const confirmBtn = document.getElementById('universal-btn-confirm');
+        confirmBtn.className = 'btn btn-danger rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center';
+        confirmBtn.innerHTML = '<i class="bi bi-radioactive me-2"></i> CONFIRM ACTION';
+        
+        document.getElementById('universal-modal-title').textContent = title;
+        document.getElementById('modal-main-title').textContent = 'Permanently Purge?';
+        document.getElementById('universal-modal-label').textContent = 'TARGET PAGE';
+        
+        confirmBtn.onclick = async (e) => {
+            e.preventDefault();
+            try {
+                const res = await apiRequest(`${PAGES_API_URL}?action=delete&id=${id}`);
+                if (res.status === 'success') {
+                    modal.hide();
+                    loadPages();
+                } else {
+                    alert(res.message || 'Failed to delete page');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+            }
+        };
+        modal.show();
+    };
+
     window.handleSetMain = async (id) => {
-        if (confirm('Designate this page as the primary dashboard node?')) {
+        const modalElement = document.getElementById('universalDeleteModal');
+        let modal = bootstrap.Modal.getInstance(modalElement);
+        if (!modal) modal = new bootstrap.Modal(modalElement);
+        
+        const row = Array.from(tableBody.querySelectorAll('tr')).find(tr => tr.innerHTML.includes(`handleSetMain(${id})`));
+        const pageTitle = row?.querySelector('td:first-child')?.textContent || 'This Page';
+        
+        document.getElementById('universal-modal-title').textContent = pageTitle;
+        document.getElementById('modal-main-title').textContent = 'Set as Main Page?';
+        document.getElementById('universal-modal-label').textContent = 'TARGET NODE';
+        document.getElementById('modal-icon-container').innerHTML = '<i class="bi bi-cpu text-info" style="font-size: 4rem; opacity: 0.8;"></i>';
+        
+        const confirmBtn = document.getElementById('universal-btn-confirm');
+        confirmBtn.className = 'btn btn-info rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center';
+        confirmBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i> DESIGNATE MAIN';
+        
+        confirmBtn.onclick = async (e) => {
+            e.preventDefault();
             const res = await setMainPage(id);
             if (res.status === 'success') {
+                modal.hide();
                 loadPages();
             } else {
                 alert(res.message || 'Failed to update main page');
             }
-        }
+        };
+        modal.show();
     };
 
     // Initial load
