@@ -46,9 +46,7 @@
                         </ul>
                     </li>
                     <li class="nav-item d-flex align-items-center ms-lg-3">
-                        <span class="badge bg-success rounded-pill db-status-badge" id="db-status">
-                            DB: CHECKING...
-                        </span>
+                        <span class="badge bg-success rounded-pill db-status-badge" id="db-status">DB: CHECKING...</span>
                     </li>
                 </ul>
             </div>
